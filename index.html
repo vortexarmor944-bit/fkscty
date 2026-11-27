@@ -121,11 +121,11 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
     <div class="drop">
       <h2>Upload Foto Resi</h2>
       <p>Pastikan resi terlihat utuh, terang, dan tidak blur.</p>
-      <label class="btn btn-p" for="in-camera">Ambil Foto</label>
-      <input id="in-camera" class="sr" type="file" accept="image/*" capture="environment">
-      <label class="btn btn-o" for="in-gallery">Pilih dari Galeri</label>
+      <label class="btn btn-p" for="in-gallery">Pilih dari Galeri</label>
       <input id="in-gallery" class="sr" type="file" accept="image/*" multiple>
       <button class="btn btn-b" id="btn-manual">Input Manual (Instant / Sameday)</button>
+      <label class="btn btn-t" for="in-camera" style="font-size:13px;text-decoration:underline">atau ambil foto dengan kamera</label>
+      <input id="in-camera" class="sr" type="file" accept="image/*" capture="environment">
     </div>
     <div id="db-msg" class="note" hidden></div>
     <div style="display:flex;justify-content:space-between;align-items:center">
