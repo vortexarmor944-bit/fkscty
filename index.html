@@ -300,8 +300,15 @@ var Core = (function () {
 
   // Varian warna. Hasil: { value, choices: [], tanya: bool, ketemu: bool }
   function detectColor(variasi, shop, rows) {
-    var map = {};
-    rows.forEach(function (r) { map[norm(r.variasi)] = String(r.hasil || '').trim(); });
+    // Aturan umum (kolom toko kosong), lalu ditimpa aturan khusus toko ini (kolom toko = kode toko).
+    var map = {}, own = {};
+    var kode = String((shop && shop.kode) || '').trim().toUpperCase();
+    rows.forEach(function (r) {
+      var t = String(r.toko || '').trim().toUpperCase();
+      if (!t) map[norm(r.variasi)] = String(r.hasil || '').trim();
+      else if (kode && t === kode) own[norm(r.variasi)] = String(r.hasil || '').trim();
+    });
+    Object.keys(own).forEach(function (k) { map[k] = own[k]; });
     var parts = [variasi].concat(String(variasi || '').split(/[,\/|]/));
     for (var i = 0; i < parts.length; i++) {
       var key = norm(parts[i]);
