@@ -115,9 +115,13 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
 <section id="s-home" hidden>
   <header class="top" style="justify-content:space-between">
     <div style="display:flex;align-items:center;gap:10px"><img src="icon.svg" alt="" width="40" height="40"><div><h1>Resi<span style="color:var(--g)">Flow</span></h1><div class="sub" id="hello">Halo</div></div></div>
+    <div style="display:flex;gap:8px">
+    <button class="icon-btn" id="btn-update" aria-label="Perbarui aplikasi dan database"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><polyline points="21 3 21 9 15 9"></polyline></svg></button>
     <button class="icon-btn" id="btn-settings" aria-label="Pengaturan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button>
+    </div>
   </header>
   <main>
+    <button type="button" id="upd-banner" class="note info" hidden style="width:100%;text-align:left;min-height:44px;cursor:pointer;border:0"><span><b>Ada versi baru ResiFlow.</b> Ketuk di sini untuk memperbarui.</span></button>
     <div class="drop">
       <h2>Upload Foto Resi</h2>
       <p>Pastikan resi terlihat utuh, terang, dan tidak blur.</p>
@@ -462,6 +466,26 @@ if (typeof module !== 'undefined') module.exports = Core;
   };
   $('btn-setup-cancel').onclick = goHome;
   $('btn-settings').onclick = function () { openSetup(true); };
+
+  /* ---------- perbarui aplikasi ---------- */
+  var APP_VERSION = '188f59486e';
+  function updateApp() {
+    toast('Memperbarui aplikasi & database…');
+    var done = function () { location.replace(location.pathname + '?v=' + Date.now()); };
+    (cfg ? loadDb() : Promise.resolve()).then(done, done);
+  }
+  function checkUpdate() {
+    fetch(location.pathname + '?cek=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) {
+        var m = /var APP_VERSION = '([^']+)'/.exec(html);
+        if (m && m[1] !== APP_VERSION) $('upd-banner').hidden = false;
+      }).catch(function () {});
+  }
+  $('btn-update').onclick = updateApp;
+  $('upd-banner').onclick = updateApp;
+  checkUpdate();
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) checkUpdate(); });
 
   /* ---------- beranda ---------- */
   function goHome() {
