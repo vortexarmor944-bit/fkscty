@@ -162,8 +162,8 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
         <div id="r-eksp-note" class="note warn" hidden></div></div>
       <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="r-toko"></div>
         <div class="sub" id="r-pengirim"></div></div>
-      <div class="field" id="r-pesanan-wrap" hidden><label for="r-pesanan">No. Pesanan <span class="req">*</span></label><input id="r-pesanan" class="up" autocomplete="off">
-        <div class="sub">Wajib untuk pengirim Penjual Program FLEXI.</div></div>
+      <div class="field" id="r-pesanan-wrap"><label for="r-pesanan">No. Pesanan <span class="req" id="r-pesanan-req" hidden>*</span></label><input id="r-pesanan" class="up" autocomplete="off">
+        <div class="sub" id="r-pesanan-note">Dicatat di laporan. Wajib untuk pengirim Penjual Program FLEXI.</div></div>
     </div>
     <div id="r-items" style="display:flex;flex-direction:column;gap:10px"></div>
     <button class="btn btn-o" id="r-add-item" type="button">+ Tambah produk</button>
@@ -658,7 +658,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function showReview() {
     $('r-resi').value = S.resi || '';
     $('r-pesanan').value = S.pesanan || '';
-    $('r-pesanan-wrap').hidden = !S.wajibPesanan;
+    $('r-pesanan-req').hidden = !S.wajibPesanan;
     $('r-eksp').innerHTML = '<option value="">— pilih —</option>' + db.ekspedisi.map(function (e) { return '<option>' + esc(e.nama) + '</option>'; }).join('');
     $('r-eksp').value = S.ekspedisi || '';
     var shop = shopBy(S.kodeToko);
@@ -774,10 +774,11 @@ if (typeof module !== 'undefined') module.exports = Core;
     var mobil = S.items.map(function (it) { return String(it.mobil).toUpperCase(); }).join(' | ');
     var warna = S.items.map(function (it) { return String(it.warna).toUpperCase(); }).join(' | ');
     var qty = S.items.reduce(function (a, it) { return a + it.qty; }, 0);
-    var row = { mode: isM ? S.layanan : 'resi foto', ekspedisi: isM ? S.layanan : S.ekspedisi, resi: isM ? S.pesanan : S.resi, kodeToko: S.kodeToko, mobil: mobil, warna: warna, qty: qty, catatan: S.catatan || '', operator: cfg.operator || '' };
+    var items = S.items.map(function (it) { return { mobil: String(it.mobil).toUpperCase(), warna: String(it.warna).toUpperCase(), qty: it.qty }; });
+    var row = { mode: isM ? S.layanan : 'resi foto', ekspedisi: isM ? S.layanan : S.ekspedisi, resi: isM ? '' : S.resi, pesanan: S.pesanan || '', kodeToko: S.kodeToko, mobil: mobil, warna: warna, qty: qty, items: items, catatan: S.catatan || '', operator: cfg.operator || '' };
     api({ action: 'log', row: row }).catch(function () {});
     var h = LS.get('resiwa.hist', []);
-    h.unshift({ t: row.ekspedisi + ' · ' + row.resi, s: (S.items.length > 1 ? S.items.length + ' produk · ' : mobil + ' · ' + warna + ' · ') + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+    h.unshift({ t: row.ekspedisi + ' · ' + (row.resi || row.pesanan), s: (S.items.length > 1 ? S.items.length + ' produk · ' : mobil + ' · ' + warna + ' · ') + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
     LS.set('resiwa.hist', h.slice(0, 50));
     show('s-done');
   }
