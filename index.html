@@ -157,8 +157,14 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
   <main>
     <div class="note warn"><b>Belum dikirim.</b> Periksa semua data dulu.</div>
     <div class="card">
-      <div class="field"><label for="r-resi">Nomor Resi <span class="req">*</span></label><input id="r-resi" class="up" autocomplete="off"></div>
-      <div class="field"><label for="r-eksp">Ekspedisi <span class="req">*</span></label><select id="r-eksp"></select>
+      <label class="field" style="flex-direction:row;align-items:center;gap:10px;min-height:44px;cursor:pointer"><input type="checkbox" id="r-spx" style="width:22px;height:22px;accent-color:var(--g)"><span class="lbl" style="margin:0">Resi SPX Instant / Sameday</span></label>
+      <div id="r-spx-box" hidden style="display:flex;flex-direction:column;gap:14px">
+        <div class="field"><span class="lbl">Layanan SPX <span class="req">*</span></span><div class="chips" id="r-spx-lay"></div></div>
+        <div class="field"><label for="r-pickup">Jam Pick Up <span class="req">*</span></label><input id="r-pickup" inputmode="decimal" autocomplete="off" placeholder="Misal: 10 atau 10.30">
+          <div class="sub">Di pesan ditulis: DI PICK UP JAM …</div></div>
+      </div>
+      <div class="field" id="r-resi-wrap"><label for="r-resi">Nomor Resi <span class="req">*</span></label><input id="r-resi" class="up" autocomplete="off"></div>
+      <div class="field" id="r-eksp-wrap"><label for="r-eksp">Ekspedisi <span class="req">*</span></label><select id="r-eksp"></select>
         <div id="r-eksp-note" class="note warn" hidden></div></div>
       <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="r-toko"></div>
         <div class="sub" id="r-pengirim"></div></div>
@@ -349,7 +355,8 @@ var Core = (function () {
   function captionResi(d) {
     var t = blocks(d.items, d.kodeToko) +
       '\n\nRESI :\n' + up(d.ekspedisi) + '\n' + String(d.resi || '').trim().toUpperCase();
-    if (d.wajibPesanan) t += '\n\nNO. PESANAN :\n' + String(d.pesanan || '').trim().toUpperCase();
+    if (d.wajibPesanan && !d.spx) t += '\n\nNO. PESANAN :\n' + String(d.pesanan || '').trim().toUpperCase();
+    if (d.spx && String(d.pickup || '').trim()) t += '\n\nDI PICK UP JAM ' + String(d.pickup).trim().toUpperCase();
     if (String(d.catatan || '').trim()) t += '\n\nCATATAN : ' + String(d.catatan).trim();
     return t;
   }
@@ -635,7 +642,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (!append) {
       S.resi = ''; S.ekspedisi = ''; S.eksYakin = true; S.kodeToko = ''; S.catatan = ''; S.pengirim = ''; S.items = [];
       S.pesanan = ''; S.wajibPesanan = false;
-      $('r-cat').value = '';
+      S.spx = false; S.spxLayanan = ''; S.pickup = ''; S.ocrResi = ''; S.ocrEks = ''; S.ocrYakin = true;
+      $('r-cat').value = ''; $('r-pickup').value = '';
     }
     var resi = String(o.nomor_resi || '').replace(/\s/g, '').toUpperCase();
     if (resi && !S.resi) {
@@ -661,9 +669,51 @@ if (typeof module !== 'undefined') module.exports = Core;
       seen[k] = 1; detectItem(it); S.items.push(it);
     });
     if (!S.items.length) S.items.push(newItem());
+    if (!S.spx) { S.ocrResi = S.resi; S.ocrEks = S.ekspedisi; S.ocrYakin = S.eksYakin; }
+    if (!S.spx && isSpxInstant(o)) setSpx(true);
+    else if (S.spx) setSpx(true);
     if (append) toast('Foto ditambahkan.');
     showReview();
   }
+  /* Resi SPX Instant / Sameday: tidak ada nomor resi, pakai No. Pesanan + layanan + jam pick up. */
+  function isSpxInstant(o) {
+    return o.label_instant_sameday === true || String(o.label_instant_sameday) === 'true' ||
+      /INSTANT|SAME ?DAY/i.test(String(o.ekspedisi_tertulis || ''));
+  }
+  function spxList() {
+    var l = (db.layanan || []).filter(function (x) { return /^spx/i.test(String(x.nama || '')); }).map(function (x) { return String(x.nama).toUpperCase(); });
+    return l.length ? l : ['SPX INSTANT', 'SPX INSTANT PRIORITAS', 'SPX SAMEDAY'];
+  }
+  function setSpx(on) {
+    S.spx = on;
+    if (on) {
+      if (!S.spxLayanan) S.spxLayanan = spxList()[0];
+      S.ekspedisi = S.spxLayanan; S.eksYakin = true; S.resi = S.pesanan || '';
+    } else {
+      S.resi = S.ocrResi || ''; S.ekspedisi = S.ocrEks || ''; S.eksYakin = S.ocrYakin !== false;
+    }
+  }
+  function renderSpx() {
+    $('r-spx').checked = !!S.spx;
+    $('r-spx-box').hidden = !S.spx;
+    $('r-resi-wrap').hidden = !!S.spx;
+    $('r-eksp-wrap').hidden = !!S.spx;
+    $('r-pickup').value = S.pickup || '';
+    var list = spxList();
+    $('r-spx-lay').innerHTML = list.map(function (n) { return '<button type="button" class="' + (n === S.spxLayanan ? 'on' : '') + '">' + esc(n) + '</button>'; }).join('');
+    $('r-spx-lay').querySelectorAll('button').forEach(function (b, i) {
+      b.onclick = function () { S.spxLayanan = list[i]; S.ekspedisi = list[i]; renderSpx(); refreshReview(); };
+    });
+    $('r-pesanan-note').textContent = S.spx ? 'Untuk SPX Instant/Sameday, No. Pesanan dipakai sebagai nomor resi.' : 'Dicatat di laporan. Wajib untuk pengirim Penjual Program FLEXI.';
+    $('r-pesanan-req').hidden = !(S.wajibPesanan || S.spx);
+  }
+  $('r-spx').onchange = function () {
+    if (this.checked && !S.spx) { S.ocrResi = S.resi; S.ocrEks = S.ekspedisi; S.ocrYakin = S.eksYakin; }
+    setSpx(this.checked);
+    $('r-resi').value = S.resi || ''; $('r-eksp').value = S.ekspedisi || '';
+    renderSpx(); renderReviewTop(); refreshReview();
+  };
+  $('r-pickup').oninput = function () { S.pickup = this.value.trim(); refreshReview(); };
   function showReview() {
     $('r-resi').value = S.resi || '';
     $('r-pesanan').value = S.pesanan || '';
@@ -675,6 +725,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var imgs = $('r-prev-imgs');
     imgs.className = 'imgs' + (S.photos.length === 1 ? ' one' : '');
     imgs.innerHTML = S.photos.map(function (p, i) { return '<img src="' + p.url + '" alt="Foto resi ' + (i + 1) + '">'; }).join('');
+    renderSpx();
     renderReviewTop();
     renderItems('r-items', refreshReview);
     refreshReview();
@@ -693,20 +744,28 @@ if (typeof module !== 'undefined') module.exports = Core;
   $('r-resi').oninput = function () { S.resi = this.value.replace(/\s/g, '').toUpperCase(); refreshReview(); };
   $('r-eksp').onchange = function () { S.ekspedisi = this.value; S.eksYakin = true; renderReviewTop(); refreshReview(); };
   $('r-cat').oninput = function () { S.catatan = this.value; refreshReview(); };
-  $('r-pesanan').oninput = function () { S.pesanan = this.value.replace(/\s/g, '').toUpperCase(); refreshReview(); };
+  $('r-pesanan').oninput = function () { S.pesanan = this.value.replace(/\s/g, '').toUpperCase(); if (S.spx) S.resi = S.pesanan; refreshReview(); };
   $('r-add-item').onclick = function () { S.items.push(newItem()); renderItems('r-items', refreshReview); refreshReview(); };
   $('btn-review-back').onclick = goHome;
   $('btn-review-next').onclick = function () {
     var miss = [];
-    if (!S.resi) miss.push('nomor resi');
-    if (!S.ekspedisi) miss.push('ekspedisi');
+    if (S.spx) {
+      if (!S.pesanan) miss.push('No. Pesanan');
+      if (!S.spxLayanan) miss.push('layanan SPX');
+      if (!S.pickup) miss.push('jam pick up');
+    } else {
+      if (!S.resi) miss.push('nomor resi');
+      if (!S.ekspedisi) miss.push('ekspedisi');
+    }
     if (!S.kodeToko) miss.push('kode toko');
-    if (S.wajibPesanan && !S.pesanan) miss.push('nomor pesanan (wajib untuk FLEXI)');
+    if (S.wajibPesanan && !S.spx && !S.pesanan) miss.push('nomor pesanan (wajib untuk FLEXI)');
     miss = miss.concat(itemsMissing());
     if (miss.length) { note($('r-err'), 'err', 'Lengkapi dulu: ' + miss.join(', ') + '.'); return; }
     note($('r-err'));
-    openConfirm([['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]]
-      .concat(S.wajibPesanan ? [['No. pesanan', S.pesanan]] : [])
+    var head = S.spx
+      ? [['Layanan', S.spxLayanan], ['No. pesanan', S.pesanan], ['Jam pick up', S.pickup], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]]
+      : [['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]].concat(S.wajibPesanan ? [['No. pesanan', S.pesanan]] : []);
+    openConfirm(head
       .concat(itemsSummary()).concat([['Foto', S.photos.length + ' foto'], ['Catatan', S.catatan || '—']]));
   };
 
