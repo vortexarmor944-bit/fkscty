@@ -397,7 +397,9 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function note(el, cls, html) {
     if (!html) { el.hidden = true; return; }
-    el.className = 'note ' + cls; el.innerHTML = html; el.hidden = false;
+    // Pertahankan class penanda (mis. f-new, f-wnote) supaya elemen tetap bisa dicari lagi.
+    el.classList.remove('info', 'warn', 'err', 'ok');
+    el.classList.add('note', cls); el.innerHTML = html; el.hidden = false;
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function api(body) {
