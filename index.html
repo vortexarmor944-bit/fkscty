@@ -161,6 +161,8 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
         <div id="r-eksp-note" class="note warn" hidden></div></div>
       <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="r-toko"></div>
         <div class="sub" id="r-pengirim"></div></div>
+      <div class="field" id="r-pesanan-wrap" hidden><label for="r-pesanan">No. Pesanan <span class="req">*</span></label><input id="r-pesanan" class="up" autocomplete="off">
+        <div class="sub">Wajib untuk pengirim Penjual Program FLEXI.</div></div>
     </div>
     <div id="r-items" style="display:flex;flex-direction:column;gap:10px"></div>
     <button class="btn btn-o" id="r-add-item" type="button">+ Tambah produk</button>
@@ -317,6 +319,11 @@ var Core = (function () {
     return { value: '', choices: [], tanya: false, ketemu: false, variasi: String(variasi || '').trim() };
   }
 
+  // Pengirim yang wajib mencantumkan nomor pesanan (mis. Shopee internasional "Penjual Program FLEXI").
+  function butuhPesanan(pengirim) {
+    return norm(pengirim).indexOf('programflexi') !== -1;
+  }
+
   function up(s) { return String(s || '').trim().toUpperCase(); }
 
   // Satu blok per produk; qty > 1 = blok diulang sebanyak qty.
@@ -334,6 +341,7 @@ var Core = (function () {
   function captionResi(d) {
     var t = blocks(d.items, d.kodeToko) +
       '\n\nRESI :\n' + up(d.ekspedisi) + '\n' + String(d.resi || '').trim().toUpperCase();
+    if (d.wajibPesanan) t += '\n\nNO. PESANAN :\n' + String(d.pesanan || '').trim().toUpperCase();
     if (String(d.catatan || '').trim()) t += '\n\nCATATAN : ' + String(d.catatan).trim();
     return t;
   }
@@ -351,7 +359,7 @@ var Core = (function () {
   return {
     norm: norm, detectCourier: detectCourier, detectShop: detectShop,
     detectCar: detectCar, detectColor: detectColor,
-    captionResi: captionResi, captionManual: captionManual, blocks: blocks
+    captionResi: captionResi, captionManual: captionManual, blocks: blocks, butuhPesanan: butuhPesanan
   };
 })();
 if (typeof module !== 'undefined') module.exports = Core;
@@ -616,6 +624,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   function applyOcr(o, append) {
     if (!append) {
       S.resi = ''; S.ekspedisi = ''; S.eksYakin = true; S.kodeToko = ''; S.catatan = ''; S.pengirim = ''; S.items = [];
+      S.pesanan = ''; S.wajibPesanan = false;
       $('r-cat').value = '';
     }
     var resi = String(o.nomor_resi || '').replace(/\s/g, '').toUpperCase();
@@ -627,6 +636,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       var c2 = Core.detectCourier(S.resi, o.ekspedisi_tertulis, db.ekspedisi);
       S.ekspedisi = c2.nama; S.eksYakin = c2.yakin;
     }
+    if (o.nama_pengirim && Core.butuhPesanan(o.nama_pengirim)) S.wajibPesanan = true;
+    if (!S.pesanan && o.no_pesanan) S.pesanan = String(o.no_pesanan).replace(/\s/g, '').toUpperCase();
     if (!S.kodeToko && o.nama_pengirim) {
       var shop = Core.detectShop(o.nama_pengirim, db.toko);
       S.pengirim = o.nama_pengirim;
@@ -645,6 +656,8 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function showReview() {
     $('r-resi').value = S.resi || '';
+    $('r-pesanan').value = S.pesanan || '';
+    $('r-pesanan-wrap').hidden = !S.wajibPesanan;
     $('r-eksp').innerHTML = '<option value="">— pilih —</option>' + db.ekspedisi.map(function (e) { return '<option>' + esc(e.nama) + '</option>'; }).join('');
     $('r-eksp').value = S.ekspedisi || '';
     var shop = shopBy(S.kodeToko);
@@ -670,6 +683,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   $('r-resi').oninput = function () { S.resi = this.value.replace(/\s/g, '').toUpperCase(); refreshReview(); };
   $('r-eksp').onchange = function () { S.ekspedisi = this.value; S.eksYakin = true; renderReviewTop(); refreshReview(); };
   $('r-cat').oninput = function () { S.catatan = this.value; refreshReview(); };
+  $('r-pesanan').oninput = function () { S.pesanan = this.value.replace(/\s/g, '').toUpperCase(); refreshReview(); };
   $('r-add-item').onclick = function () { S.items.push(newItem()); renderItems('r-items', refreshReview); refreshReview(); };
   $('btn-review-back').onclick = goHome;
   $('btn-review-next').onclick = function () {
@@ -677,10 +691,12 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (!S.resi) miss.push('nomor resi');
     if (!S.ekspedisi) miss.push('ekspedisi');
     if (!S.kodeToko) miss.push('kode toko');
+    if (S.wajibPesanan && !S.pesanan) miss.push('nomor pesanan (wajib untuk FLEXI)');
     miss = miss.concat(itemsMissing());
     if (miss.length) { note($('r-err'), 'err', 'Lengkapi dulu: ' + miss.join(', ') + '.'); return; }
     note($('r-err'));
     openConfirm([['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]]
+      .concat(S.wajibPesanan ? [['No. pesanan', S.pesanan]] : [])
       .concat(itemsSummary()).concat([['Foto', S.photos.length + ' foto'], ['Catatan', S.catatan || '—']]));
   };
 
