@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E6B52">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Resi → WhatsApp</title>
+<style>
+*{box-sizing:border-box}
+:root{--g:#0E6B52;--g2:#E3F1EB;--ink:#13201C;--mut:#4F5F59;--bd:#CFD9D4;--bg:#F4F7F5;--warn:#FDEFD9;--warnInk:#6E3C00;--blue:#E8EEF9;--blueInk:#1D3A6E;--red:#B3261E}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+header.top{padding:16px 20px 10px;display:flex;align-items:center;gap:12px}
+header.top h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:12px;color:var(--mut);font-weight:500}
+main{padding:6px 20px 28px;display:flex;flex-direction:column;gap:14px}
+.card{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+label,.lbl{font-size:12px;font-weight:600;color:var(--mut)}
+input,select,textarea{font:inherit;color:inherit;width:100%;min-height:44px;border:1.5px solid var(--bd);border-radius:10px;padding:8px 12px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--g);outline-offset:1px;border-color:var(--g)}
+.up{text-transform:uppercase;font-weight:600}
+button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:48px;padding:0 16px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn-p{background:var(--g);color:#fff;min-height:52px}
+.btn-p:disabled{background:#D5DED9;color:var(--mut);cursor:not-allowed}
+.btn-o{background:#fff;color:var(--g);border:1.5px solid var(--g)}
+.btn-b{background:var(--blue);color:var(--blueInk)}
+.btn-t{background:transparent;color:var(--mut);min-height:44px}
+.icon-btn{width:44px;min-height:44px;padding:0;border-radius:12px;background:#fff;color:var(--ink)}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
+.seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;background:#E1E8E4;padding:4px;border-radius:14px}
+.seg button{min-height:44px;border-radius:10px;background:transparent;color:var(--mut)}
+.seg button.on{background:#fff;color:var(--g);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.chips{display:flex;gap:6px}
+.chips button{flex:1;min-width:0;min-height:44px;border-radius:10px;background:#fff;border:1.5px solid var(--bd);color:var(--ink);font-size:14px;font-weight:700}
+.chips button.on{background:var(--g);border-color:var(--g);color:#fff}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opts button{justify-content:flex-start;min-height:44px;border-radius:10px;background:#fff;border:1.5px solid var(--bd);color:var(--ink);font-weight:600}
+.opts button.on{background:var(--g2);border:2px solid var(--g)}
+.note{padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.45}
+.note.warn{background:var(--warn);color:var(--warnInk)}
+.note.info{background:var(--blue);color:var(--blueInk)}
+.note.ok{background:var(--g2);color:#0B5A45}
+.note.err{background:#FCE8E6;color:#8C1D18}
+.drop{background:#fff;border:2px dashed #9DB8AD;border-radius:20px;padding:24px 18px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.drop h2{margin:0;font-size:18px}
+.drop p{margin:0;font-size:13px;color:var(--mut)}
+.drop .btn{width:100%}
+.hist{display:flex;flex-direction:column;gap:8px}
+.hist .it{background:#fff;border-radius:14px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hist .t{font-size:14px;font-weight:600}
+.hist .s{font-size:12px;color:var(--mut)}
+.pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--g2);color:var(--g);white-space:nowrap}
+.scanbox{position:relative;border-radius:16px;overflow:hidden;background:#1D2B27;min-height:200px;display:flex;align-items:center;justify-content:center}
+.scanbox img{max-width:100%;max-height:360px;display:block}
+.scanline{position:absolute;left:16px;right:16px;height:3px;background:#3DDC97;box-shadow:0 0 14px 3px rgba(61,220,151,.6);animation:scan 1.6s ease-in-out infinite alternate}
+@keyframes scan{from{top:12%}to{top:88%}}
+@media (prefers-reduced-motion:reduce){.scanline{animation:none;top:50%}}
+.chat{border-radius:16px;padding:14px;background:#1F2C28;display:flex;flex-direction:column;gap:8px}
+.chat h3{margin:0;font-size:12px;color:#C9D6D1}
+.bubble{align-self:flex-end;width:88%;background:#1E5A48;color:#F1F5F3;border-radius:12px 2px 12px 12px;padding:5px;display:flex;flex-direction:column;gap:6px}
+.bubble img{width:100%;border-radius:8px;max-height:220px;object-fit:cover}
+.bubble pre{margin:0;padding:4px 8px 6px;font-size:13px;line-height:1.45;font-family:inherit;white-space:pre-wrap;word-break:break-word}
+.sum{border:1.5px solid #E1E8E4;border-radius:14px;padding:2px 14px}
+.sum div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #EDF1EF;font-size:14px}
+.sum div:last-child{border-bottom:0}
+.sum span{color:var(--mut)}
+.sum b{text-align:right}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:14px;min-height:44px;cursor:pointer}
+.check input{width:22px;min-height:22px;height:22px;margin:0;accent-color:var(--g);flex:none}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:44px;min-height:44px;padding:0;border-radius:10px;background:#fff;border:1.5px solid var(--bd);color:var(--ink);font-size:20px}
+.stepper output{min-width:36px;text-align:center;font-weight:700}
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:40px 0}
+.big{width:96px;height:96px;border-radius:48px;background:var(--g);display:flex;align-items:center;justify-content:center}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#13201C;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;z-index:9;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.req{color:var(--red)}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ========== PENGATURAN ========== -->
+<section id="s-setup" hidden>
+  <header class="top"><div><div class="sub">Sekali saja di tiap HP</div><h1>Pengaturan</h1></div></header>
+  <main>
+    <div class="card">
+      <div class="field"><label for="cfg-url">URL Web App (Apps Script) <span class="req">*</span></label>
+        <input id="cfg-url" inputmode="url" placeholder="https://script.google.com/macros/s/…/exec"></div>
+      <div class="field"><label for="cfg-pin">PIN aplikasi <span class="req">*</span></label>
+        <input id="cfg-pin" type="password" inputmode="numeric" autocomplete="off"></div>
+      <div class="field"><label for="cfg-op">Nama operator</label>
+        <input id="cfg-op" placeholder="Misal: Rina"></div>
+    </div>
+    <div id="setup-msg" class="note" hidden></div>
+    <button class="btn btn-p" id="btn-setup-save">Simpan &amp; Tes Koneksi</button>
+    <button class="btn btn-t" id="btn-setup-cancel" hidden>Batal</button>
+  </main>
+</section>
+
+<!-- ========== BERANDA ========== -->
+<section id="s-home" hidden>
+  <header class="top" style="justify-content:space-between">
+    <div><div class="sub" id="hello">Halo</div><h1>Resi → WhatsApp</h1></div>
+    <button class="icon-btn" id="btn-settings" aria-label="Pengaturan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></button>
+  </header>
+  <main>
+    <div class="drop">
+      <h2>Upload Foto Resi</h2>
+      <p>Pastikan resi terlihat utuh, terang, dan tidak blur.</p>
+      <label class="btn btn-p" for="in-camera">Ambil Foto</label>
+      <input id="in-camera" class="sr" type="file" accept="image/*" capture="environment">
+      <label class="btn btn-o" for="in-gallery">Pilih dari Galeri</label>
+      <input id="in-gallery" class="sr" type="file" accept="image/*">
+      <button class="btn btn-b" id="btn-manual">Input Manual (Instant / Sameday)</button>
+    </div>
+    <div id="db-msg" class="note" hidden></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 style="margin:0;font-size:15px">Riwayat di HP ini</h3>
+      <button class="btn btn-t" id="btn-reload-db" style="min-height:40px;font-size:13px">Muat ulang database</button>
+    </div>
+    <div class="hist" id="hist"></div>
+  </main>
+</section>
+
+<!-- ========== SCAN ========== -->
+<section id="s-scan" hidden>
+  <header class="top"><div><div class="sub">Langkah 2–3</div><h1>Membaca resi…</h1></div></header>
+  <main>
+    <div class="scanbox"><img id="scan-img" alt="Foto resi"><div class="scanline" id="scanline"></div></div>
+    <div id="scan-msg" class="note info" role="status">Mengirim foto ke pembaca resi…</div>
+    <div class="row" id="scan-actions" hidden>
+      <button class="btn btn-o" id="btn-scan-retry">Coba lagi</button>
+      <button class="btn btn-p" id="btn-scan-skip">Isi manual</button>
+    </div>
+    <button class="btn btn-t" id="btn-scan-cancel">Batal</button>
+  </main>
+</section>
+
+<!-- ========== PERIKSA & EDIT (RESI FOTO) ========== -->
+<section id="s-review" hidden>
+  <header class="top"><button class="icon-btn" id="btn-review-back" aria-label="Kembali">‹</button><div><div class="sub">Langkah 4–5</div><h1>Periksa &amp; Edit</h1></div></header>
+  <main>
+    <div class="note warn"><b>Belum dikirim.</b> Periksa semua data dulu.</div>
+    <div class="card">
+      <div class="field"><label for="r-resi">Nomor Resi <span class="req">*</span></label><input id="r-resi" class="up" autocomplete="off"></div>
+      <div class="field"><label for="r-eksp">Ekspedisi <span class="req">*</span></label><select id="r-eksp"></select>
+        <div id="r-eksp-note" class="note warn" hidden></div></div>
+      <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="r-toko"></div>
+        <div class="sub" id="r-pengirim"></div></div>
+      <div class="field"><label for="r-mobil">Tipe Mobil <span class="req">*</span></label>
+        <input id="r-mobil" class="up" list="dl-mobil" autocomplete="off" placeholder="Ketik atau pilih">
+        <div class="sub" id="r-judul"></div>
+        <div id="r-mobil-new" class="note info" hidden></div></div>
+      <div class="field"><label for="r-warna">Varian Warna <span class="req">*</span></label>
+        <div class="sub" id="r-variasi"></div>
+        <div id="r-warna-note" class="note warn" hidden></div>
+        <div class="row" id="r-warna-choices" hidden></div>
+        <input id="r-warna" class="up" list="dl-warna" autocomplete="off" placeholder="Ketik atau pilih"></div>
+      <div class="field" style="flex-direction:row;align-items:center;justify-content:space-between"><span class="lbl">Jumlah (Qty)</span>
+        <div class="stepper"><button id="r-qty-m" aria-label="Kurangi">−</button><output id="r-qty">1</output><button id="r-qty-p" aria-label="Tambah">+</button></div></div>
+      <div class="field"><label for="r-cat">Catatan (opsional)</label><textarea id="r-cat" rows="2" placeholder="Misal: kirim sebelum jam 3"></textarea></div>
+    </div>
+    <div class="chat"><h3>Preview pesan (foto resi + caption)</h3>
+      <div class="bubble"><img id="r-prev-img" alt="Foto resi"><pre id="r-prev"></pre></div></div>
+    <div id="r-err" class="note err" hidden></div>
+    <button class="btn btn-p" id="btn-review-next">Lanjut ke Konfirmasi</button>
+  </main>
+</section>
+
+<!-- ========== INPUT MANUAL ========== -->
+<section id="s-manual" hidden>
+  <header class="top"><button class="icon-btn" id="btn-manual-back" aria-label="Kembali">‹</button><div><div class="sub">Tanpa foto resi · resi menyusul</div><h1>Input Manual</h1></div></header>
+  <main>
+    <div class="seg" role="group" aria-label="Jenis pengiriman"><button data-jenis="instant" class="on">Instant</button><button data-jenis="sameday">Sameday</button></div>
+    <div class="card">
+      <div class="field"><span class="lbl">Jasa Kirim <span class="req">*</span></span><div class="opts" id="m-layanan"></div></div>
+      <div class="field" id="m-maks-wrap"><label for="m-maks">Batas Waktu Kirim (maksimal)</label>
+        <div class="row"><input id="m-maks" type="number" min="1" inputmode="numeric" value="60" style="flex:2">
+          <div class="chips" id="m-satuan" style="flex:2"><button data-s="menit" class="on">Menit</button><button data-s="jam">Jam</button></div></div></div>
+      <div class="field"><label for="m-pesanan">Nomor Pesanan <span class="req">*</span></label><input id="m-pesanan" class="up" autocomplete="off"></div>
+      <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="m-toko"></div></div>
+      <div class="field"><label for="m-mobil">Tipe Mobil <span class="req">*</span></label>
+        <input id="m-mobil" class="up" list="dl-mobil" autocomplete="off" placeholder="Ketik atau pilih">
+        <div id="m-mobil-new" class="note info" hidden></div></div>
+      <div class="field"><label for="m-warna">Varian Warna <span class="req">*</span></label><input id="m-warna" class="up" list="dl-warna" autocomplete="off" placeholder="Ketik atau pilih"></div>
+      <div class="field"><label for="m-cat">Catatan (opsional)</label><textarea id="m-cat" rows="2" placeholder="Misal: kirim sebelum jam 3"></textarea></div>
+    </div>
+    <div class="chat"><h3>Preview pesan (teks saja)</h3><div class="bubble"><pre id="m-prev"></pre></div></div>
+    <div id="m-err" class="note err" hidden></div>
+    <button class="btn btn-p" id="btn-manual-next">Lanjut ke Konfirmasi</button>
+  </main>
+</section>
+
+<!-- ========== KONFIRMASI ========== -->
+<section id="s-confirm" hidden>
+  <header class="top"><div><div class="sub">Langkah terakhir</div><h1>Konfirmasi Pengiriman</h1></div></header>
+  <main>
+    <div class="sum" id="c-sum" style="background:#fff"></div>
+    <label class="check"><input type="checkbox" id="c-ok"><span>Saya sudah memeriksa semua data. Data sudah benar.</span></label>
+    <button class="btn btn-p" id="btn-send" disabled>KONFIRMASI &amp; KIRIM</button>
+    <div class="sub" style="text-align:center">WhatsApp akan terbuka. Pilih grup tujuan lalu tekan kirim.</div>
+    <button class="btn btn-t" id="btn-confirm-back">Batal, edit lagi</button>
+  </main>
+</section>
+
+<!-- ========== SELESAI ========== -->
+<section id="s-done" hidden>
+  <main style="min-height:100vh">
+    <div class="done">
+      <div class="big"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></div>
+      <h1 style="margin:0;font-size:24px">Dibagikan ke WhatsApp</h1>
+      <p style="margin:0;color:var(--mut);max-width:320px">Caption juga sudah disalin. Kalau di WhatsApp caption tidak ikut, tekan lama kolom ketik lalu <b>Tempel</b>.</p>
+    </div>
+    <button class="btn btn-o" id="btn-reshare">Bagikan ulang</button>
+    <button class="btn btn-p" id="btn-next">Scan Resi Berikutnya</button>
+  </main>
+</section>
+
+<datalist id="dl-mobil"></datalist>
+<datalist id="dl-warna"></datalist>
+<div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+/* ===== Logika inti: mapping hasil baca resi + menyusun caption ===== */
+var Core = (function () {
+  function norm(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  function list(s) {
+    return String(s || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+  }
+
+  // Ekspedisi: cek tulisan/logo dulu (kata kunci terpanjang menang), lalu awalan nomor resi.
+  function detectCourier(resi, tertulis, rows) {
+    var t = norm(tertulis);
+    var keys = [];
+    rows.forEach(function (r) {
+      list(r.kata_logo).forEach(function (k) { keys.push({ k: norm(k), nama: r.nama }); });
+    });
+    keys.sort(function (a, b) { return b.k.length - a.k.length; });
+    if (t) {
+      for (var i = 0; i < keys.length; i++) {
+        if (keys[i].k && t.indexOf(keys[i].k) !== -1) return { nama: keys[i].nama, yakin: true };
+      }
+    }
+    var r0 = String(resi || '').toUpperCase().replace(/\s/g, '');
+    var hits = rows.filter(function (r) {
+      return list(r.awalan).some(function (p) { return p && r0.indexOf(p.toUpperCase()) === 0; });
+    });
+    if (hits.length) return { nama: hits[0].nama, yakin: hits.length === 1 };
+    return { nama: '', yakin: false };
+  }
+
+  function detectShop(pengirim, rows) {
+    var t = norm(pengirim);
+    if (!t) return null;
+    for (var i = 0; i < rows.length; i++) {
+      var ks = list(rows[i].kata_kunci).concat([rows[i].nama, rows[i].kode]);
+      for (var j = 0; j < ks.length; j++) {
+        var k = norm(ks[j]);
+        if (k.length >= 3 && t.indexOf(k) !== -1) return rows[i];
+      }
+    }
+    return null;
+  }
+
+  // Tipe mobil: kata kunci terpanjang yang muncul di judul produk.
+  function detectCar(judul, rows, saran) {
+    var t = norm(judul);
+    var best = null, bestLen = 0;
+    rows.forEach(function (r) {
+      list(r.kata_kunci).concat([r.tipe]).forEach(function (k) {
+        var n = norm(k);
+        if (n.length > bestLen && t.indexOf(n) !== -1) { best = r.tipe; bestLen = n.length; }
+      });
+    });
+    if (best) return { tipe: String(best).toUpperCase(), baru: false };
+    var s = String(saran || '').trim().toUpperCase();
+    return { tipe: s, baru: !!s };
+  }
+
+  function strip2Versions(hasil) {
+    var lis = hasil.replace(/\bstrip 2\b/g, 'lis');
+    var s2 = hasil.replace(/\blis\b/g, 'strip 2');
+    return { lis: lis, strip2: s2 };
+  }
+
+  // Varian warna. Hasil: { value, choices: [], tanya: bool, ketemu: bool }
+  function detectColor(variasi, shop, rows) {
+    var map = {};
+    rows.forEach(function (r) { map[norm(r.variasi)] = String(r.hasil || '').trim(); });
+    var parts = [variasi].concat(String(variasi || '').split(/[,\/|]/));
+    for (var i = 0; i < parts.length; i++) {
+      var key = norm(parts[i]);
+      if (!key || !(key in map)) continue;
+      var hasil = map[key];
+      if (hasil.toUpperCase() === 'TANYA') return { value: '', choices: [], tanya: true, ketemu: true, variasi: parts[i].trim() };
+      if (key.indexOf('strip2') === 0) {
+        var v = strip2Versions(hasil);
+        var gaya = norm(shop && shop.gaya_strip2);
+        if (gaya === 'lis') return { value: v.lis, choices: [], tanya: false, ketemu: true, variasi: parts[i].trim() };
+        if (gaya === 'strip2') return { value: v.strip2, choices: [], tanya: false, ketemu: true, variasi: parts[i].trim() };
+        if (v.lis !== v.strip2) return { value: '', choices: [v.lis, v.strip2], tanya: false, ketemu: true, variasi: parts[i].trim() };
+      }
+      return { value: hasil, choices: [], tanya: false, ketemu: true, variasi: parts[i].trim() };
+    }
+    return { value: '', choices: [], tanya: false, ketemu: false, variasi: String(variasi || '').trim() };
+  }
+
+  function up(s) { return String(s || '').trim().toUpperCase(); }
+
+  function captionResi(d) {
+    var t = 'TIPE MOBIL :\n' + up(d.mobil) +
+      '\n\nVARIAN WARNA :\n*' + up(d.warna) + ' +  ' + up(d.kodeToko) + '*' +
+      '\n\nRESI :\n' + up(d.ekspedisi) + '\n' + String(d.resi || '').trim().toUpperCase();
+    if (String(d.catatan || '').trim()) t += '\n\nCATATAN : ' + String(d.catatan).trim();
+    return t;
+  }
+
+  function captionManual(d) {
+    var t = 'TIPE MOBIL :\n' + up(d.mobil) +
+      '\n\nVARIAN WARNA :\n*' + up(d.warna) + ' +  ' + up(d.kodeToko) + '*' +
+      '\n\n' + up(d.layanan) + '\n' + String(d.pesanan || '').trim();
+    var extra = [];
+    if (d.jenis === 'instant' && String(d.maks || '').trim()) extra.push('MAKS : ' + String(d.maks).trim() + ' ' + up(d.satuan));
+    if (String(d.catatan || '').trim()) extra.push('CATATAN : ' + String(d.catatan).trim());
+    if (extra.length) t += '\n\n' + extra.join('\n');
+    return t;
+  }
+
+  return {
+    norm: norm, detectCourier: detectCourier, detectShop: detectShop,
+    detectCar: detectCar, detectColor: detectColor,
+    captionResi: captionResi, captionManual: captionManual
+  };
+})();
+if (typeof module !== 'undefined') module.exports = Core;
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  var cfg = LS.get('resiwa.cfg', null);
+  var db = LS.get('resiwa.db', null);
+  var S = {};        // data pengiriman yang sedang dikerjakan
+  var lastShare = null;
+
+  /* ---------- util ---------- */
+  function show(id) {
+    document.querySelectorAll('section').forEach(function (s) { s.hidden = s.id !== id; });
+    window.scrollTo(0, 0);
+  }
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(function () { t.hidden = true; }, 3500);
+  }
+  function note(el, cls, html) {
+    if (!html) { el.hidden = true; return; }
+    el.className = 'note ' + cls; el.innerHTML = html; el.hidden = false;
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function api(body) {
+    body.pin = cfg.pin;
+    return fetch(cfg.url, { method: 'POST', body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j.ok) throw new Error(j.error || 'Gagal'); return j; });
+  }
+
+  /* ---------- database ---------- */
+  function loadDb() {
+    return api({ action: 'db' }).then(function (j) {
+      db = j.db; LS.set('resiwa.db', db); fillLists(); return db;
+    });
+  }
+  function fillLists() {
+    if (!db) return;
+    $('dl-mobil').innerHTML = db.mobil.map(function (m) { return '<option value="' + esc(m.tipe.toUpperCase()) + '">'; }).join('');
+    var set = {};
+    db.warna.forEach(function (w) {
+      var h = String(w.hasil || '').trim(); if (!h || h.toUpperCase() === 'TANYA') return;
+      set[h.toUpperCase()] = 1;
+      if (/^strip ?2/i.test(w.variasi)) { set[h.replace(/\bstrip 2\b/g, 'lis').toUpperCase()] = 1; set[h.replace(/\blis\b/g, 'strip 2').toUpperCase()] = 1; }
+    });
+    $('dl-warna').innerHTML = Object.keys(set).sort().map(function (h) { return '<option value="' + esc(h) + '">'; }).join('');
+  }
+  function knownCar(t) {
+    var n = Core.norm(t);
+    return !n || db.mobil.some(function (m) { return Core.norm(m.tipe) === n; });
+  }
+
+  /* ---------- pengaturan ---------- */
+  function openSetup(canCancel) {
+    $('cfg-url').value = cfg ? cfg.url : '';
+    $('cfg-pin').value = cfg ? cfg.pin : '';
+    $('cfg-op').value = cfg ? cfg.operator : '';
+    $('btn-setup-cancel').hidden = !canCancel;
+    note($('setup-msg'));
+    show('s-setup');
+  }
+  $('btn-setup-save').onclick = function () {
+    var url = $('cfg-url').value.trim(), pin = $('cfg-pin').value.trim();
+    if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) { note($('setup-msg'), 'err', 'URL harus berupa link Web App Apps Script yang berakhiran <b>/exec</b>.'); return; }
+    if (!pin) { note($('setup-msg'), 'err', 'PIN wajib diisi.'); return; }
+    var prev = cfg;
+    cfg = { url: url, pin: pin, operator: $('cfg-op').value.trim() };
+    note($('setup-msg'), 'info', 'Menguji koneksi…');
+    loadDb().then(function () {
+      LS.set('resiwa.cfg', cfg); toast('Terhubung. Database dimuat.'); goHome();
+    }).catch(function (e) {
+      cfg = prev; note($('setup-msg'), 'err', 'Gagal terhubung: ' + esc(e.message));
+    });
+  };
+  $('btn-setup-cancel').onclick = goHome;
+  $('btn-settings').onclick = function () { openSetup(true); };
+
+  /* ---------- beranda ---------- */
+  function goHome() {
+    $('hello').textContent = 'Halo' + (cfg && cfg.operator ? ', ' + cfg.operator : '');
+    var h = LS.get('resiwa.hist', []);
+    $('hist').innerHTML = h.length ? h.slice(0, 15).map(function (x) {
+      return '<div class="it"><div><div class="t">' + esc(x.t) + '</div><div class="s">' + esc(x.s) + '</div></div><span class="pill">' + esc(x.w) + '</span></div>';
+    }).join('') : '<div class="sub">Belum ada pengiriman dari HP ini.</div>';
+    show('s-home');
+  }
+  $('btn-reload-db').onclick = function () {
+    note($('db-msg'), 'info', 'Memuat database…');
+    loadDb().then(function () { note($('db-msg'), 'ok', 'Database terbaru sudah dimuat.'); })
+      .catch(function (e) { note($('db-msg'), 'err', 'Gagal memuat: ' + esc(e.message)); });
+  };
+
+  /* ---------- foto → scan ---------- */
+  function compress(file) {
+    return new Promise(function (res, rej) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { b ? res(b) : rej(new Error('Gagal memproses foto')); }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function () { rej(new Error('Foto tidak bisa dibuka')); };
+      img.src = url;
+    });
+  }
+  function toBase64(blob) {
+    return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(',')[1]); }; r.readAsDataURL(blob); });
+  }
+  function onPick(e) {
+    var f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    if (!db) { toast('Database belum dimuat. Tekan "Muat ulang database".'); return; }
+    S = { mode: 'resi', qty: 1 };
+    compress(f).then(function (blob) {
+      S.blob = blob; S.imgUrl = URL.createObjectURL(blob);
+      $('scan-img').src = S.imgUrl; runScan();
+    }).catch(function (err) { toast(err.message); });
+  }
+  $('in-camera').onchange = onPick;
+  $('in-gallery').onchange = onPick;
+  function runScan() {
+    show('s-scan');
+    $('scanline').hidden = false; $('scan-actions').hidden = true;
+    note($('scan-msg'), 'info', 'Membaca resi… biasanya beberapa detik.');
+    var token = S.scanToken = Date.now();
+    toBase64(S.blob).then(function (b64) { return api({ action: 'ocr', image: b64, mime: 'image/jpeg' }); })
+      .then(function (j) { if (S.scanToken !== token) return; S.ocr = j.data || {}; fillReview(); })
+      .catch(function (e) {
+        if (S.scanToken !== token) return;
+        $('scanline').hidden = true; $('scan-actions').hidden = false;
+        note($('scan-msg'), 'err', 'Gagal membaca resi: ' + esc(e.message));
+      });
+  }
+  $('btn-scan-retry').onclick = runScan;
+  $('btn-scan-skip').onclick = function () { S.ocr = {}; fillReview(); };
+  $('btn-scan-cancel').onclick = function () { S.scanToken = 0; goHome(); };
+
+  /* ---------- chip kode toko ---------- */
+  function renderShops(boxId, current, onPick) {
+    var box = $(boxId);
+    box.innerHTML = db.toko.map(function (t) {
+      return '<button type="button" data-k="' + esc(t.kode) + '" class="' + (t.kode === current ? 'on' : '') + '" aria-label="' + esc(t.nama + ' (' + t.kode + ')') + '">' + esc(t.kode) + '</button>';
+    }).join('');
+    box.querySelectorAll('button').forEach(function (b) { b.onclick = function () { onPick(b.dataset.k); }; });
+  }
+  function shopBy(kode) { return db.toko.filter(function (t) { return t.kode === kode; })[0] || null; }
+
+  /* ---------- periksa & edit ---------- */
+  function fillReview() {
+    var o = S.ocr || {};
+    S.resi = String(o.nomor_resi || '').replace(/\s/g, '').toUpperCase();
+    var c = Core.detectCourier(S.resi, o.ekspedisi_tertulis, db.ekspedisi);
+    S.ekspedisi = c.nama; S.eksYakin = c.yakin;
+    var shop = Core.detectShop(o.nama_pengirim, db.toko);
+    S.kodeToko = shop ? shop.kode : '';
+    var car = Core.detectCar(o.judul_produk, db.mobil, o.tipe_mobil_saran);
+    S.mobil = car.tipe;
+    S.qty = parseInt(o.qty, 10) > 0 ? parseInt(o.qty, 10) : 1;
+    S.catatan = '';
+    S.warnaManual = false;
+    $('r-resi').value = S.resi;
+    $('r-eksp').innerHTML = '<option value="">— pilih —</option>' + db.ekspedisi.map(function (e) { return '<option>' + esc(e.nama) + '</option>'; }).join('');
+    $('r-eksp').value = S.ekspedisi;
+    $('r-mobil').value = S.mobil;
+    $('r-cat').value = '';
+    $('r-qty').textContent = S.qty;
+    $('r-pengirim').textContent = o.nama_pengirim ? 'Pengirim di resi: ' + o.nama_pengirim + (shop ? '' : ' (tidak dikenali, pilih manual)') : '';
+    $('r-judul').textContent = o.judul_produk ? 'Dari resi: “' + o.judul_produk + '”' : '';
+    $('r-variasi').textContent = o.variasi ? 'Variasi di resi: ' + o.variasi : 'Variasi tidak terbaca';
+    $('r-prev-img').src = S.imgUrl;
+    applyColor();
+    renderReview();
+    show('s-review');
+  }
+  function applyColor() {
+    var o = S.ocr || {};
+    var r = Core.detectColor(o.variasi, shopBy(S.kodeToko), db.warna);
+    S.warnaInfo = r;
+    if (!S.warnaManual) { S.warna = r.value; $('r-warna').value = (r.value || '').toUpperCase(); }
+  }
+  function renderReview() {
+    var o = S.ocr || {};
+    renderShops('r-toko', S.kodeToko, function (k) { S.kodeToko = k; applyColor(); renderReview(); });
+    var en = $('r-eksp-note');
+    if (!S.ekspedisi) note(en, 'warn', 'Ekspedisi belum terdeteksi. Pilih manual.');
+    else if (!S.eksYakin) note(en, 'warn', 'Awalan nomor resi dipakai lebih dari satu ekspedisi. Cek logo di foto, lalu pastikan pilihan ini benar.');
+    else note(en);
+    var r = S.warnaInfo || {}, wn = $('r-warna-note'), ch = $('r-warna-choices');
+    ch.hidden = true; ch.innerHTML = '';
+    if (r.tanya) note(wn, 'warn', '<b>' + esc(r.variasi) + ':</b> tanyakan warnanya ke pembeli dulu, lalu isi warna secara manual.');
+    else if (r.choices && r.choices.length && !S.warnaManual) {
+      note(wn, 'warn', 'Variasi ini punya 2 versi dan toko ini belum punya aturan. Pilih yang sesuai:');
+      ch.hidden = false;
+      ch.innerHTML = r.choices.map(function (v) { return '<button type="button" class="btn btn-o" style="min-height:44px;font-size:13px">' + esc(v.toUpperCase()) + '</button>'; }).join('');
+      ch.querySelectorAll('button').forEach(function (b, i) { b.onclick = function () { S.warna = r.choices[i]; S.warnaManual = true; $('r-warna').value = r.choices[i].toUpperCase(); renderReview(); }; });
+    } else if (!r.ketemu && o.variasi) note(wn, 'warn', 'Variasi “' + esc(o.variasi) + '” belum ada di database warna. Isi manual.');
+    else note(wn);
+    newCarPrompt('r-mobil-new', S.mobil, renderReview);
+    $('r-prev').textContent = Core.captionResi(S);
+  }
+  function newCarPrompt(boxId, tipe, rerender) {
+    var box = $(boxId);
+    if (knownCar(tipe)) { box.hidden = true; return; }
+    note(box, 'info', '<div style="display:flex;gap:10px;align-items:center"><span style="flex:1"><b>' + esc(String(tipe).toUpperCase()) + '</b> belum ada di database. Simpan supaya berikutnya terbaca otomatis?</span><button type="button" class="btn" style="background:#1D3A6E;color:#fff;min-height:44px">Simpan</button></div>');
+    box.querySelector('button').onclick = function () {
+      var t = String(tipe).trim().toUpperCase();
+      api({ action: 'saveMobil', tipe: t, kataKunci: t.toLowerCase() })
+        .then(function () { db.mobil.push({ tipe: t, kata_kunci: t.toLowerCase() }); LS.set('resiwa.db', db); fillLists(); toast('Tersimpan ke database.'); rerender(); })
+        .catch(function (e) { toast('Gagal menyimpan: ' + e.message); });
+    };
+  }
+  $('r-resi').oninput = function () { S.resi = this.value.replace(/\s/g, '').toUpperCase(); renderReview(); };
+  $('r-eksp').onchange = function () { S.ekspedisi = this.value; S.eksYakin = true; renderReview(); };
+  $('r-mobil').oninput = function () { S.mobil = this.value; renderReview(); };
+  $('r-warna').oninput = function () { S.warna = this.value; S.warnaManual = true; renderReview(); };
+  $('r-cat').oninput = function () { S.catatan = this.value; renderReview(); };
+  $('r-qty-m').onclick = function () { S.qty = Math.max(1, S.qty - 1); $('r-qty').textContent = S.qty; };
+  $('r-qty-p').onclick = function () { S.qty += 1; $('r-qty').textContent = S.qty; };
+  $('btn-review-back').onclick = goHome;
+  $('btn-review-next').onclick = function () {
+    var miss = [];
+    if (!S.resi) miss.push('nomor resi');
+    if (!S.ekspedisi) miss.push('ekspedisi');
+    if (!S.kodeToko) miss.push('kode toko');
+    if (!String(S.mobil || '').trim()) miss.push('tipe mobil');
+    if (!String(S.warna || '').trim()) miss.push('varian warna');
+    if (miss.length) { note($('r-err'), 'err', 'Lengkapi dulu: ' + miss.join(', ') + '.'); return; }
+    note($('r-err'));
+    openConfirm([['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko], ['Tipe mobil', String(S.mobil).toUpperCase()], ['Warna', String(S.warna).toUpperCase()], ['Jumlah', S.qty], ['Catatan', S.catatan || '—']]);
+  };
+
+  /* ---------- input manual ---------- */
+  function openManual() {
+    S = { mode: 'manual', jenis: 'instant', satuan: 'menit', maks: '60', layanan: '', pesanan: '', kodeToko: '', mobil: '', warna: '', catatan: '' };
+    ['m-pesanan', 'm-mobil', 'm-warna', 'm-cat'].forEach(function (id) { $(id).value = ''; });
+    $('m-maks').value = '60';
+    renderManual(); show('s-manual');
+  }
+  function renderManual() {
+    document.querySelectorAll('.seg button').forEach(function (b) { b.classList.toggle('on', b.dataset.jenis === S.jenis); });
+    var list = db.layanan.filter(function (l) { return l.jenis.toLowerCase() === S.jenis; });
+    if (!list.some(function (l) { return l.nama === S.layanan; })) S.layanan = list.length ? list[0].nama : '';
+    $('m-layanan').innerHTML = list.map(function (l) { return '<button type="button" class="' + (l.nama === S.layanan ? 'on' : '') + '">' + esc(l.nama) + '</button>'; }).join('');
+    $('m-layanan').querySelectorAll('button').forEach(function (b, i) { b.onclick = function () { S.layanan = list[i].nama; renderManual(); }; });
+    $('m-maks-wrap').hidden = S.jenis !== 'instant';
+    document.querySelectorAll('#m-satuan button').forEach(function (b) { b.classList.toggle('on', b.dataset.s === S.satuan); });
+    renderShops('m-toko', S.kodeToko, function (k) { S.kodeToko = k; renderManual(); });
+    newCarPrompt('m-mobil-new', S.mobil, renderManual);
+    $('m-prev').textContent = Core.captionManual(S);
+  }
+  $('btn-manual').onclick = function () { if (!db) { toast('Database belum dimuat. Tekan "Muat ulang database".'); return; } openManual(); };
+  $('btn-manual-back').onclick = goHome;
+  document.querySelectorAll('.seg button').forEach(function (b) { b.onclick = function () { S.jenis = b.dataset.jenis; renderManual(); }; });
+  document.querySelectorAll('#m-satuan button').forEach(function (b) { b.onclick = function () { S.satuan = b.dataset.s; renderManual(); }; });
+  $('m-maks').oninput = function () { S.maks = this.value; renderManual(); };
+  $('m-pesanan').oninput = function () { S.pesanan = this.value.trim(); renderManual(); };
+  $('m-mobil').oninput = function () { S.mobil = this.value; renderManual(); };
+  $('m-warna').oninput = function () { S.warna = this.value; renderManual(); };
+  $('m-cat').oninput = function () { S.catatan = this.value; renderManual(); };
+  $('btn-manual-next').onclick = function () {
+    var miss = [];
+    if (!S.layanan) miss.push('jasa kirim');
+    if (!S.pesanan) miss.push('nomor pesanan');
+    if (!S.kodeToko) miss.push('kode toko');
+    if (!String(S.mobil).trim()) miss.push('tipe mobil');
+    if (!String(S.warna).trim()) miss.push('varian warna');
+    if (miss.length) { note($('m-err'), 'err', 'Lengkapi dulu: ' + miss.join(', ') + '.'); return; }
+    note($('m-err'));
+    var rows = [['Jasa kirim', S.layanan], ['No. pesanan', S.pesanan]];
+    if (S.jenis === 'instant') rows.push(['Maksimal', (S.maks || '-') + ' ' + S.satuan]);
+    rows.push(['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko], ['Tipe mobil', String(S.mobil).toUpperCase()], ['Warna', String(S.warna).toUpperCase()], ['Catatan', S.catatan || '—']);
+    openConfirm(rows);
+  };
+
+  /* ---------- konfirmasi & kirim ---------- */
+  function openConfirm(rows) {
+    $('c-sum').innerHTML = rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join('');
+    $('c-ok').checked = false; $('btn-send').disabled = true;
+    show('s-confirm');
+  }
+  $('c-ok').onchange = function () { $('btn-send').disabled = !this.checked; };
+  $('btn-confirm-back').onclick = function () { show(S.mode === 'manual' ? 's-manual' : 's-review'); };
+
+  function shareNow(caption, file) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(caption).catch(function () {});
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], text: caption });
+    if (!file && navigator.share) return navigator.share({ text: caption });
+    // Cadangan: buka WhatsApp dengan teks saja
+    window.location.href = 'https://wa.me/?text=' + encodeURIComponent(caption);
+    if (file) toast('Browser ini tidak bisa membagikan foto. Lampirkan foto resi manual di WhatsApp.');
+    return Promise.resolve();
+  }
+  $('btn-send').onclick = function () {
+    var caption = S.mode === 'manual' ? Core.captionManual(S) : Core.captionResi(S);
+    var file = S.mode === 'resi' ? new File([S.blob], 'resi-' + (S.resi || 'foto') + '.jpg', { type: 'image/jpeg' }) : null;
+    lastShare = { caption: caption, file: file };
+    shareNow(caption, file).then(afterSent).catch(function (e) {
+      if (e && e.name === 'AbortError') toast('Dibatalkan. Belum terkirim.');
+      else toast('Gagal membuka WhatsApp: ' + (e && e.message));
+    });
+  };
+  function afterSent() {
+    var isM = S.mode === 'manual';
+    var row = { mode: isM ? S.layanan : 'resi foto', ekspedisi: isM ? S.layanan : S.ekspedisi, resi: isM ? S.pesanan : S.resi, kodeToko: S.kodeToko, mobil: String(S.mobil).toUpperCase(), warna: String(S.warna).toUpperCase(), qty: isM ? '' : S.qty, catatan: S.catatan || '', operator: cfg.operator || '' };
+    api({ action: 'log', row: row }).catch(function () {});
+    var h = LS.get('resiwa.hist', []);
+    h.unshift({ t: row.ekspedisi + ' · ' + row.resi, s: row.mobil + ' · ' + row.warna + ' · ' + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+    LS.set('resiwa.hist', h.slice(0, 50));
+    show('s-done');
+  }
+  $('btn-reshare').onclick = function () { if (lastShare) shareNow(lastShare.caption, lastShare.file).catch(function () {}); };
+  $('btn-next').onclick = goHome;
+
+  /* ---------- mulai ---------- */
+  if (!cfg) openSetup(false);
+  else {
+    fillLists(); goHome();
+    if (!db) $('btn-reload-db').onclick();
+    else loadDb().catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
