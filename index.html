@@ -80,6 +80,13 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#13201C;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;z-index:9;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .req{color:var(--red)}
 [hidden]{display:none!important}
+.item{background:#fff;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;border-left:0}
+.item-h{display:flex;justify-content:space-between;align-items:center}
+.item-h b{font-size:14px}
+.item-x{min-height:36px;padding:0 10px;border-radius:10px;background:#FCE8E6;color:#8C1D18;font-size:13px}
+.imgs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.imgs img{width:100%;border-radius:8px;max-height:220px;object-fit:cover}
+.imgs.one{grid-template-columns:1fr}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -117,7 +124,7 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
       <label class="btn btn-p" for="in-camera">Ambil Foto</label>
       <input id="in-camera" class="sr" type="file" accept="image/*" capture="environment">
       <label class="btn btn-o" for="in-gallery">Pilih dari Galeri</label>
-      <input id="in-gallery" class="sr" type="file" accept="image/*">
+      <input id="in-gallery" class="sr" type="file" accept="image/*" multiple>
       <button class="btn btn-b" id="btn-manual">Input Manual (Instant / Sameday)</button>
     </div>
     <div id="db-msg" class="note" hidden></div>
@@ -154,21 +161,16 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
         <div id="r-eksp-note" class="note warn" hidden></div></div>
       <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="r-toko"></div>
         <div class="sub" id="r-pengirim"></div></div>
-      <div class="field"><label for="r-mobil">Tipe Mobil <span class="req">*</span></label>
-        <input id="r-mobil" class="up" list="dl-mobil" autocomplete="off" placeholder="Ketik atau pilih">
-        <div class="sub" id="r-judul"></div>
-        <div id="r-mobil-new" class="note info" hidden></div></div>
-      <div class="field"><label for="r-warna">Varian Warna <span class="req">*</span></label>
-        <div class="sub" id="r-variasi"></div>
-        <div id="r-warna-note" class="note warn" hidden></div>
-        <div class="row" id="r-warna-choices" hidden></div>
-        <input id="r-warna" class="up" list="dl-warna" autocomplete="off" placeholder="Ketik atau pilih"></div>
-      <div class="field" style="flex-direction:row;align-items:center;justify-content:space-between"><span class="lbl">Jumlah (Qty)</span>
-        <div class="stepper"><button id="r-qty-m" aria-label="Kurangi">−</button><output id="r-qty">1</output><button id="r-qty-p" aria-label="Tambah">+</button></div></div>
+    </div>
+    <div id="r-items" style="display:flex;flex-direction:column;gap:10px"></div>
+    <button class="btn btn-o" id="r-add-item" type="button">+ Tambah produk</button>
+    <label class="btn btn-t" for="in-more" style="min-height:44px">+ Tambah foto resi (halaman berikutnya)</label>
+    <input id="in-more" class="sr" type="file" accept="image/*" multiple>
+    <div class="card">
       <div class="field"><label for="r-cat">Catatan (opsional)</label><textarea id="r-cat" rows="2" placeholder="Misal: kirim sebelum jam 3"></textarea></div>
     </div>
     <div class="chat"><h3>Preview pesan (foto resi + caption)</h3>
-      <div class="bubble"><img id="r-prev-img" alt="Foto resi"><pre id="r-prev"></pre></div></div>
+      <div class="bubble"><div class="imgs" id="r-prev-imgs"></div><pre id="r-prev"></pre></div></div>
     <div id="r-err" class="note err" hidden></div>
     <button class="btn btn-p" id="btn-review-next">Lanjut ke Konfirmasi</button>
   </main>
@@ -186,10 +188,10 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
           <div class="chips" id="m-satuan" style="flex:2"><button data-s="menit" class="on">Menit</button><button data-s="jam">Jam</button></div></div></div>
       <div class="field"><label for="m-pesanan">Nomor Pesanan <span class="req">*</span></label><input id="m-pesanan" class="up" autocomplete="off"></div>
       <div class="field"><span class="lbl">Kode Toko <span class="req">*</span></span><div class="chips" id="m-toko"></div></div>
-      <div class="field"><label for="m-mobil">Tipe Mobil <span class="req">*</span></label>
-        <input id="m-mobil" class="up" list="dl-mobil" autocomplete="off" placeholder="Ketik atau pilih">
-        <div id="m-mobil-new" class="note info" hidden></div></div>
-      <div class="field"><label for="m-warna">Varian Warna <span class="req">*</span></label><input id="m-warna" class="up" list="dl-warna" autocomplete="off" placeholder="Ketik atau pilih"></div>
+    </div>
+    <div id="m-items" style="display:flex;flex-direction:column;gap:10px"></div>
+    <button class="btn btn-o" id="m-add-item" type="button">+ Tambah produk</button>
+    <div class="card">
       <div class="field"><label for="m-cat">Catatan (opsional)</label><textarea id="m-cat" rows="2" placeholder="Misal: kirim sebelum jam 3"></textarea></div>
     </div>
     <div class="chat"><h3>Preview pesan (teks saja)</h3><div class="bubble"><pre id="m-prev"></pre></div></div>
@@ -273,8 +275,8 @@ var Core = (function () {
   }
 
   // Tipe mobil: kata kunci terpanjang yang muncul di judul produk.
-  function detectCar(judul, rows, saran) {
-    var t = norm(judul);
+  function detectCar(judul, rows, saran, variasi) {
+    var t = norm(String(judul || '') + ' ' + String(variasi || ''));
     var best = null, bestLen = 0;
     rows.forEach(function (r) {
       list(r.kata_kunci).concat([r.tipe]).forEach(function (k) {
@@ -317,17 +319,27 @@ var Core = (function () {
 
   function up(s) { return String(s || '').trim().toUpperCase(); }
 
+  // Satu blok per produk; qty > 1 = blok diulang sebanyak qty.
+  function blocks(items, kode) {
+    var out = [];
+    (items || []).forEach(function (it) {
+      var n = Math.max(1, parseInt(it.qty, 10) || 1);
+      for (var i = 0; i < n; i++) {
+        out.push('TIPE MOBIL :\n' + up(it.mobil) + '\n\nVARIAN WARNA :\n*' + up(it.warna) + ' +  ' + up(kode) + '*');
+      }
+    });
+    return out.join('\n\n...\n\n');
+  }
+
   function captionResi(d) {
-    var t = 'TIPE MOBIL :\n' + up(d.mobil) +
-      '\n\nVARIAN WARNA :\n*' + up(d.warna) + ' +  ' + up(d.kodeToko) + '*' +
+    var t = blocks(d.items, d.kodeToko) +
       '\n\nRESI :\n' + up(d.ekspedisi) + '\n' + String(d.resi || '').trim().toUpperCase();
     if (String(d.catatan || '').trim()) t += '\n\nCATATAN : ' + String(d.catatan).trim();
     return t;
   }
 
   function captionManual(d) {
-    var t = 'TIPE MOBIL :\n' + up(d.mobil) +
-      '\n\nVARIAN WARNA :\n*' + up(d.warna) + ' +  ' + up(d.kodeToko) + '*' +
+    var t = blocks(d.items, d.kodeToko) +
       '\n\n' + up(d.layanan) + '\n' + String(d.pesanan || '').trim();
     var extra = [];
     if (d.jenis === 'instant' && String(d.maks || '').trim()) extra.push('MAKS : ' + String(d.maks).trim() + ' ' + up(d.satuan));
@@ -339,7 +351,7 @@ var Core = (function () {
   return {
     norm: norm, detectCourier: detectCourier, detectShop: detectShop,
     detectCar: detectCar, detectColor: detectColor,
-    captionResi: captionResi, captionManual: captionManual
+    captionResi: captionResi, captionManual: captionManual, blocks: blocks
   };
 })();
 if (typeof module !== 'undefined') module.exports = Core;
@@ -441,7 +453,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       .catch(function (e) { note($('db-msg'), 'err', 'Gagal memuat: ' + esc(e.message)); });
   };
 
-  /* ---------- foto → scan ---------- */
+  /* ---------- foto ---------- */
   function compress(file) {
     return new Promise(function (res, rej) {
       var img = new Image(), url = URL.createObjectURL(file);
@@ -459,34 +471,136 @@ if (typeof module !== 'undefined') module.exports = Core;
   function toBase64(blob) {
     return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(',')[1]); }; r.readAsDataURL(blob); });
   }
+  function loadPhotos(files) {
+    return Promise.all(Array.prototype.slice.call(files, 0, 4).map(compress)).then(function (blobs) {
+      return blobs.map(function (b) { return { blob: b, url: URL.createObjectURL(b) }; });
+    });
+  }
   function onPick(e) {
-    var f = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!f) return;
+    var files = e.target.files; var list = files ? Array.prototype.slice.call(files) : []; e.target.value = '';
+    if (!list.length) return;
     if (!db) { toast('Database belum dimuat. Tekan "Muat ulang database".'); return; }
-    S = { mode: 'resi', qty: 1 };
-    compress(f).then(function (blob) {
-      S.blob = blob; S.imgUrl = URL.createObjectURL(blob);
-      $('scan-img').src = S.imgUrl; runScan();
-    }).catch(function (err) { toast(err.message); });
+    S = { mode: 'resi', photos: [], items: [] };
+    loadPhotos(list).then(function (ph) { S.photos = ph; runScan(ph, false); }).catch(function (err) { toast(err.message); });
   }
   $('in-camera').onchange = onPick;
   $('in-gallery').onchange = onPick;
-  function runScan() {
+  $('in-more').onchange = function (e) {
+    var list = e.target.files ? Array.prototype.slice.call(e.target.files) : []; e.target.value = '';
+    if (!list.length) return;
+    loadPhotos(list).then(function (ph) { S.photos = S.photos.concat(ph); runScan(ph, true); }).catch(function (err) { toast(err.message); });
+  };
+
+  /* ---------- scan ---------- */
+  function runScan(photos, append) {
     show('s-scan');
+    $('scan-img').src = photos[0].url;
     $('scanline').hidden = false; $('scan-actions').hidden = true;
-    note($('scan-msg'), 'info', 'Membaca resi… biasanya beberapa detik.');
+    note($('scan-msg'), 'info', 'Membaca resi' + (photos.length > 1 ? ' (' + photos.length + ' foto)' : '') + '… biasanya beberapa detik.');
     var token = S.scanToken = Date.now();
-    toBase64(S.blob).then(function (b64) { return api({ action: 'ocr', image: b64, mime: 'image/jpeg' }); })
-      .then(function (j) { if (S.scanToken !== token) return; S.ocr = j.data || {}; fillReview(); })
+    S.lastScan = { photos: photos, append: append };
+    Promise.all(photos.map(function (p) { return toBase64(p.blob); }))
+      .then(function (arr) { return api({ action: 'ocr', images: arr.map(function (d) { return { data: d, mime: 'image/jpeg' }; }) }); })
+      .then(function (j) { if (S.scanToken !== token) return; applyOcr(j.data || {}, append); })
       .catch(function (e) {
         if (S.scanToken !== token) return;
         $('scanline').hidden = true; $('scan-actions').hidden = false;
         note($('scan-msg'), 'err', 'Gagal membaca resi: ' + esc(e.message));
       });
   }
-  $('btn-scan-retry').onclick = runScan;
-  $('btn-scan-skip').onclick = function () { S.ocr = {}; fillReview(); };
-  $('btn-scan-cancel').onclick = function () { S.scanToken = 0; goHome(); };
+  $('btn-scan-retry').onclick = function () { runScan(S.lastScan.photos, S.lastScan.append); };
+  $('btn-scan-skip').onclick = function () { applyOcr({}, S.lastScan && S.lastScan.append); };
+  $('btn-scan-cancel').onclick = function () { S.scanToken = 0; if (S.lastScan && S.lastScan.append) showReview(); else goHome(); };
+
+  /* ---------- produk (dipakai di Periksa & Manual) ---------- */
+  function newItem(p) {
+    p = p || {};
+    return { judul: p.judul_produk || '', variasi: p.variasi || '', saran: p.tipe_mobil_saran || '', mobil: '', warna: '', warnaManual: false, info: null, qty: Math.max(1, parseInt(p.qty, 10) || 1) };
+  }
+  function detectItem(it) {
+    if (it.judul || it.saran || it.variasi) it.mobil = Core.detectCar(it.judul, db.mobil, it.saran, it.variasi).tipe;
+    colorItem(it);
+  }
+  function colorItem(it) {
+    if (!it.variasi) { it.info = null; return; }
+    it.info = Core.detectColor(it.variasi, shopBy(S.kodeToko), db.warna);
+    if (!it.warnaManual) it.warna = it.info.value;
+  }
+  function itemsFromOcr(o) {
+    var list = Array.isArray(o.produk) && o.produk.length ? o.produk
+      : (o.judul_produk || o.variasi ? [o] : []);
+    return list.map(function (p) { var it = newItem(p); return it; });
+  }
+
+  function renderItems(boxId, onChange) {
+    var box = $(boxId);
+    box.innerHTML = '';
+    S.items.forEach(function (it, i) {
+      var el = document.createElement('div');
+      el.className = 'item';
+      el.innerHTML =
+        '<div class="item-h"><b>Produk ' + (i + 1) + '</b>' + (S.items.length > 1 ? '<button type="button" class="item-x">Hapus</button>' : '') + '</div>' +
+        (it.judul ? '<div class="sub">Dari resi: “' + esc(it.judul) + '”</div>' : '') +
+        '<div class="field"><label>Tipe Mobil <span class="req">*</span></label><input class="up f-mobil" list="dl-mobil" autocomplete="off" placeholder="Ketik atau pilih"><div class="note info f-new" hidden></div></div>' +
+        '<div class="field"><label>Varian Warna <span class="req">*</span></label>' +
+        (it.variasi ? '<div class="sub">Variasi di resi: ' + esc(it.variasi) + '</div>' : '') +
+        '<div class="note warn f-wnote" hidden></div><div class="row f-choices" hidden></div>' +
+        '<input class="up f-warna" list="dl-warna" autocomplete="off" placeholder="Ketik atau pilih"></div>' +
+        '<div class="field" style="flex-direction:row;align-items:center;justify-content:space-between"><span class="lbl">Jumlah (pcs)</span>' +
+        '<div class="stepper"><button type="button" class="f-m" aria-label="Kurangi">−</button><output class="f-q"></output><button type="button" class="f-p" aria-label="Tambah">+</button></div></div>';
+      box.appendChild(el);
+      var q = function (c) { return el.querySelector(c); };
+      q('.f-mobil').value = (it.mobil || '').toUpperCase();
+      q('.f-warna').value = (it.warna || '').toUpperCase();
+      q('.f-q').textContent = it.qty;
+      q('.f-mobil').setAttribute('aria-label', 'Tipe mobil produk ' + (i + 1));
+      q('.f-warna').setAttribute('aria-label', 'Varian warna produk ' + (i + 1));
+      q('.f-mobil').oninput = function () { it.mobil = this.value; updateItem(el, it, onChange); onChange(); };
+      q('.f-warna').oninput = function () { it.warna = this.value; it.warnaManual = true; updateItem(el, it, onChange); onChange(); };
+      q('.f-m').onclick = function () { it.qty = Math.max(1, it.qty - 1); q('.f-q').textContent = it.qty; onChange(); };
+      q('.f-p').onclick = function () { it.qty += 1; q('.f-q').textContent = it.qty; onChange(); };
+      if (q('.item-x')) q('.item-x').onclick = function () { S.items.splice(i, 1); renderItems(boxId, onChange); onChange(); };
+      updateItem(el, it, onChange);
+    });
+  }
+  function updateItem(el, it, onChange) {
+    var q = function (c) { return el.querySelector(c); };
+    var r = it.info, wn = q('.f-wnote'), ch = q('.f-choices');
+    ch.hidden = true; ch.innerHTML = '';
+    if (r && r.tanya && !it.warnaManual) note(wn, 'warn', '<b>' + esc(r.variasi) + ':</b> tanyakan warnanya ke pembeli dulu, lalu isi warna secara manual.');
+    else if (r && r.choices && r.choices.length && !it.warnaManual) {
+      note(wn, 'warn', 'Variasi ini punya 2 versi dan toko ini belum punya aturan. Pilih yang sesuai:');
+      ch.hidden = false;
+      ch.innerHTML = r.choices.map(function (v) { return '<button type="button" class="btn btn-o" style="min-height:44px;font-size:13px">' + esc(v.toUpperCase()) + '</button>'; }).join('');
+      ch.querySelectorAll('button').forEach(function (b, k) {
+        b.onclick = function () { it.warna = r.choices[k]; it.warnaManual = true; q('.f-warna').value = it.warna.toUpperCase(); updateItem(el, it, onChange); onChange(); };
+      });
+    } else if (r && !r.ketemu && !it.warnaManual) note(wn, 'warn', 'Variasi “' + esc(it.variasi) + '” belum ada di database warna. Isi manual.');
+    else note(wn);
+    var box = q('.f-new');
+    if (knownCar(it.mobil)) { box.hidden = true; return; }
+    note(box, 'info', '<div style="display:flex;gap:10px;align-items:center"><span style="flex:1"><b>' + esc(String(it.mobil).toUpperCase()) + '</b> belum ada di database. Simpan supaya berikutnya terbaca otomatis?</span><button type="button" class="btn" style="background:#1D3A6E;color:#fff;min-height:44px">Simpan</button></div>');
+    box.querySelector('button').onclick = function () {
+      var t = String(it.mobil).trim().toUpperCase();
+      api({ action: 'saveMobil', tipe: t, kataKunci: t.toLowerCase() })
+        .then(function () { db.mobil.push({ tipe: t, kata_kunci: t.toLowerCase() }); LS.set('resiwa.db', db); fillLists(); toast('Tersimpan ke database.'); updateItem(el, it, onChange); })
+        .catch(function (e) { toast('Gagal menyimpan: ' + e.message); });
+    };
+  }
+  function itemsMissing() {
+    var miss = [];
+    if (!S.items.length) miss.push('minimal 1 produk');
+    S.items.forEach(function (it, i) {
+      if (!String(it.mobil || '').trim()) miss.push('tipe mobil produk ' + (i + 1));
+      if (!String(it.warna || '').trim()) miss.push('varian warna produk ' + (i + 1));
+    });
+    return miss;
+  }
+  function itemsSummary() {
+    return S.items.map(function (it, i) {
+      return ['Produk ' + (i + 1), String(it.mobil).toUpperCase() + ' · ' + String(it.warna).toUpperCase() + (it.qty > 1 ? ' · ' + it.qty + ' pcs' : '')];
+    });
+  }
 
   /* ---------- chip kode toko ---------- */
   function renderShops(boxId, current, onPick) {
@@ -499,130 +613,115 @@ if (typeof module !== 'undefined') module.exports = Core;
   function shopBy(kode) { return db.toko.filter(function (t) { return t.kode === kode; })[0] || null; }
 
   /* ---------- periksa & edit ---------- */
-  function fillReview() {
-    var o = S.ocr || {};
-    S.resi = String(o.nomor_resi || '').replace(/\s/g, '').toUpperCase();
-    var c = Core.detectCourier(S.resi, o.ekspedisi_tertulis, db.ekspedisi);
-    S.ekspedisi = c.nama; S.eksYakin = c.yakin;
-    var shop = Core.detectShop(o.nama_pengirim, db.toko);
-    S.kodeToko = shop ? shop.kode : '';
-    var car = Core.detectCar(o.judul_produk, db.mobil, o.tipe_mobil_saran);
-    S.mobil = car.tipe;
-    S.qty = parseInt(o.qty, 10) > 0 ? parseInt(o.qty, 10) : 1;
-    S.catatan = '';
-    S.warnaManual = false;
-    $('r-resi').value = S.resi;
+  function applyOcr(o, append) {
+    if (!append) {
+      S.resi = ''; S.ekspedisi = ''; S.eksYakin = true; S.kodeToko = ''; S.catatan = ''; S.pengirim = ''; S.items = [];
+      $('r-cat').value = '';
+    }
+    var resi = String(o.nomor_resi || '').replace(/\s/g, '').toUpperCase();
+    if (resi && !S.resi) {
+      S.resi = resi;
+      var c = Core.detectCourier(resi, o.ekspedisi_tertulis, db.ekspedisi);
+      S.ekspedisi = c.nama; S.eksYakin = c.yakin;
+    } else if (!S.ekspedisi && o.ekspedisi_tertulis) {
+      var c2 = Core.detectCourier(S.resi, o.ekspedisi_tertulis, db.ekspedisi);
+      S.ekspedisi = c2.nama; S.eksYakin = c2.yakin;
+    }
+    if (!S.kodeToko && o.nama_pengirim) {
+      var shop = Core.detectShop(o.nama_pengirim, db.toko);
+      S.pengirim = o.nama_pengirim;
+      S.kodeToko = shop ? shop.kode : '';
+    }
+    var seen = {};
+    S.items.forEach(function (it) { seen[Core.norm(it.judul + '|' + it.variasi)] = 1; });
+    itemsFromOcr(o).forEach(function (it) {
+      var k = Core.norm(it.judul + '|' + it.variasi);
+      if (append && seen[k]) return;
+      seen[k] = 1; detectItem(it); S.items.push(it);
+    });
+    if (!S.items.length) S.items.push(newItem());
+    if (append) toast('Foto ditambahkan.');
+    showReview();
+  }
+  function showReview() {
+    $('r-resi').value = S.resi || '';
     $('r-eksp').innerHTML = '<option value="">— pilih —</option>' + db.ekspedisi.map(function (e) { return '<option>' + esc(e.nama) + '</option>'; }).join('');
-    $('r-eksp').value = S.ekspedisi;
-    $('r-mobil').value = S.mobil;
-    $('r-cat').value = '';
-    $('r-qty').textContent = S.qty;
-    $('r-pengirim').textContent = o.nama_pengirim ? 'Pengirim di resi: ' + o.nama_pengirim + (shop ? '' : ' (tidak dikenali, pilih manual)') : '';
-    $('r-judul').textContent = o.judul_produk ? 'Dari resi: “' + o.judul_produk + '”' : '';
-    $('r-variasi').textContent = o.variasi ? 'Variasi di resi: ' + o.variasi : 'Variasi tidak terbaca';
-    $('r-prev-img').src = S.imgUrl;
-    applyColor();
-    renderReview();
+    $('r-eksp').value = S.ekspedisi || '';
+    var shop = shopBy(S.kodeToko);
+    $('r-pengirim').textContent = S.pengirim ? 'Pengirim di resi: ' + S.pengirim + (shop ? '' : ' (tidak dikenali, pilih manual)') : '';
+    var imgs = $('r-prev-imgs');
+    imgs.className = 'imgs' + (S.photos.length === 1 ? ' one' : '');
+    imgs.innerHTML = S.photos.map(function (p, i) { return '<img src="' + p.url + '" alt="Foto resi ' + (i + 1) + '">'; }).join('');
+    renderReviewTop();
+    renderItems('r-items', refreshReview);
+    refreshReview();
     show('s-review');
   }
-  function applyColor() {
-    var o = S.ocr || {};
-    var r = Core.detectColor(o.variasi, shopBy(S.kodeToko), db.warna);
-    S.warnaInfo = r;
-    if (!S.warnaManual) { S.warna = r.value; $('r-warna').value = (r.value || '').toUpperCase(); }
-  }
-  function renderReview() {
-    var o = S.ocr || {};
-    renderShops('r-toko', S.kodeToko, function (k) { S.kodeToko = k; applyColor(); renderReview(); });
+  function renderReviewTop() {
+    renderShops('r-toko', S.kodeToko, function (k) {
+      S.kodeToko = k; S.items.forEach(colorItem); renderReviewTop(); renderItems('r-items', refreshReview); refreshReview();
+    });
     var en = $('r-eksp-note');
     if (!S.ekspedisi) note(en, 'warn', 'Ekspedisi belum terdeteksi. Pilih manual.');
     else if (!S.eksYakin) note(en, 'warn', 'Awalan nomor resi dipakai lebih dari satu ekspedisi. Cek logo di foto, lalu pastikan pilihan ini benar.');
     else note(en);
-    var r = S.warnaInfo || {}, wn = $('r-warna-note'), ch = $('r-warna-choices');
-    ch.hidden = true; ch.innerHTML = '';
-    if (r.tanya) note(wn, 'warn', '<b>' + esc(r.variasi) + ':</b> tanyakan warnanya ke pembeli dulu, lalu isi warna secara manual.');
-    else if (r.choices && r.choices.length && !S.warnaManual) {
-      note(wn, 'warn', 'Variasi ini punya 2 versi dan toko ini belum punya aturan. Pilih yang sesuai:');
-      ch.hidden = false;
-      ch.innerHTML = r.choices.map(function (v) { return '<button type="button" class="btn btn-o" style="min-height:44px;font-size:13px">' + esc(v.toUpperCase()) + '</button>'; }).join('');
-      ch.querySelectorAll('button').forEach(function (b, i) { b.onclick = function () { S.warna = r.choices[i]; S.warnaManual = true; $('r-warna').value = r.choices[i].toUpperCase(); renderReview(); }; });
-    } else if (!r.ketemu && o.variasi) note(wn, 'warn', 'Variasi “' + esc(o.variasi) + '” belum ada di database warna. Isi manual.');
-    else note(wn);
-    newCarPrompt('r-mobil-new', S.mobil, renderReview);
-    $('r-prev').textContent = Core.captionResi(S);
   }
-  function newCarPrompt(boxId, tipe, rerender) {
-    var box = $(boxId);
-    if (knownCar(tipe)) { box.hidden = true; return; }
-    note(box, 'info', '<div style="display:flex;gap:10px;align-items:center"><span style="flex:1"><b>' + esc(String(tipe).toUpperCase()) + '</b> belum ada di database. Simpan supaya berikutnya terbaca otomatis?</span><button type="button" class="btn" style="background:#1D3A6E;color:#fff;min-height:44px">Simpan</button></div>');
-    box.querySelector('button').onclick = function () {
-      var t = String(tipe).trim().toUpperCase();
-      api({ action: 'saveMobil', tipe: t, kataKunci: t.toLowerCase() })
-        .then(function () { db.mobil.push({ tipe: t, kata_kunci: t.toLowerCase() }); LS.set('resiwa.db', db); fillLists(); toast('Tersimpan ke database.'); rerender(); })
-        .catch(function (e) { toast('Gagal menyimpan: ' + e.message); });
-    };
-  }
-  $('r-resi').oninput = function () { S.resi = this.value.replace(/\s/g, '').toUpperCase(); renderReview(); };
-  $('r-eksp').onchange = function () { S.ekspedisi = this.value; S.eksYakin = true; renderReview(); };
-  $('r-mobil').oninput = function () { S.mobil = this.value; renderReview(); };
-  $('r-warna').oninput = function () { S.warna = this.value; S.warnaManual = true; renderReview(); };
-  $('r-cat').oninput = function () { S.catatan = this.value; renderReview(); };
-  $('r-qty-m').onclick = function () { S.qty = Math.max(1, S.qty - 1); $('r-qty').textContent = S.qty; };
-  $('r-qty-p').onclick = function () { S.qty += 1; $('r-qty').textContent = S.qty; };
+  function refreshReview() { $('r-prev').textContent = Core.captionResi(S); }
+  $('r-resi').oninput = function () { S.resi = this.value.replace(/\s/g, '').toUpperCase(); refreshReview(); };
+  $('r-eksp').onchange = function () { S.ekspedisi = this.value; S.eksYakin = true; renderReviewTop(); refreshReview(); };
+  $('r-cat').oninput = function () { S.catatan = this.value; refreshReview(); };
+  $('r-add-item').onclick = function () { S.items.push(newItem()); renderItems('r-items', refreshReview); refreshReview(); };
   $('btn-review-back').onclick = goHome;
   $('btn-review-next').onclick = function () {
     var miss = [];
     if (!S.resi) miss.push('nomor resi');
     if (!S.ekspedisi) miss.push('ekspedisi');
     if (!S.kodeToko) miss.push('kode toko');
-    if (!String(S.mobil || '').trim()) miss.push('tipe mobil');
-    if (!String(S.warna || '').trim()) miss.push('varian warna');
+    miss = miss.concat(itemsMissing());
     if (miss.length) { note($('r-err'), 'err', 'Lengkapi dulu: ' + miss.join(', ') + '.'); return; }
     note($('r-err'));
-    openConfirm([['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko], ['Tipe mobil', String(S.mobil).toUpperCase()], ['Warna', String(S.warna).toUpperCase()], ['Jumlah', S.qty], ['Catatan', S.catatan || '—']]);
+    openConfirm([['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]]
+      .concat(itemsSummary()).concat([['Foto', S.photos.length + ' foto'], ['Catatan', S.catatan || '—']]));
   };
 
   /* ---------- input manual ---------- */
   function openManual() {
-    S = { mode: 'manual', jenis: 'instant', satuan: 'menit', maks: '60', layanan: '', pesanan: '', kodeToko: '', mobil: '', warna: '', catatan: '' };
-    ['m-pesanan', 'm-mobil', 'm-warna', 'm-cat'].forEach(function (id) { $(id).value = ''; });
+    S = { mode: 'manual', jenis: 'instant', satuan: 'menit', maks: '60', layanan: '', pesanan: '', kodeToko: '', catatan: '', items: [newItem()] };
+    ['m-pesanan', 'm-cat'].forEach(function (id) { $(id).value = ''; });
     $('m-maks').value = '60';
-    renderManual(); show('s-manual');
+    renderManual(); renderItems('m-items', refreshManual); refreshManual(); show('s-manual');
   }
   function renderManual() {
     document.querySelectorAll('.seg button').forEach(function (b) { b.classList.toggle('on', b.dataset.jenis === S.jenis); });
     var list = db.layanan.filter(function (l) { return l.jenis.toLowerCase() === S.jenis; });
     if (!list.some(function (l) { return l.nama === S.layanan; })) S.layanan = list.length ? list[0].nama : '';
     $('m-layanan').innerHTML = list.map(function (l) { return '<button type="button" class="' + (l.nama === S.layanan ? 'on' : '') + '">' + esc(l.nama) + '</button>'; }).join('');
-    $('m-layanan').querySelectorAll('button').forEach(function (b, i) { b.onclick = function () { S.layanan = list[i].nama; renderManual(); }; });
+    $('m-layanan').querySelectorAll('button').forEach(function (b, i) { b.onclick = function () { S.layanan = list[i].nama; renderManual(); refreshManual(); }; });
     $('m-maks-wrap').hidden = S.jenis !== 'instant';
     document.querySelectorAll('#m-satuan button').forEach(function (b) { b.classList.toggle('on', b.dataset.s === S.satuan); });
-    renderShops('m-toko', S.kodeToko, function (k) { S.kodeToko = k; renderManual(); });
-    newCarPrompt('m-mobil-new', S.mobil, renderManual);
-    $('m-prev').textContent = Core.captionManual(S);
+    renderShops('m-toko', S.kodeToko, function (k) { S.kodeToko = k; renderManual(); refreshManual(); });
   }
+  function refreshManual() { $('m-prev').textContent = Core.captionManual(S); }
   $('btn-manual').onclick = function () { if (!db) { toast('Database belum dimuat. Tekan "Muat ulang database".'); return; } openManual(); };
   $('btn-manual-back').onclick = goHome;
-  document.querySelectorAll('.seg button').forEach(function (b) { b.onclick = function () { S.jenis = b.dataset.jenis; renderManual(); }; });
-  document.querySelectorAll('#m-satuan button').forEach(function (b) { b.onclick = function () { S.satuan = b.dataset.s; renderManual(); }; });
-  $('m-maks').oninput = function () { S.maks = this.value; renderManual(); };
-  $('m-pesanan').oninput = function () { S.pesanan = this.value.trim(); renderManual(); };
-  $('m-mobil').oninput = function () { S.mobil = this.value; renderManual(); };
-  $('m-warna').oninput = function () { S.warna = this.value; renderManual(); };
-  $('m-cat').oninput = function () { S.catatan = this.value; renderManual(); };
+  document.querySelectorAll('.seg button').forEach(function (b) { b.onclick = function () { S.jenis = b.dataset.jenis; renderManual(); refreshManual(); }; });
+  document.querySelectorAll('#m-satuan button').forEach(function (b) { b.onclick = function () { S.satuan = b.dataset.s; renderManual(); refreshManual(); }; });
+  $('m-maks').oninput = function () { S.maks = this.value; refreshManual(); };
+  $('m-pesanan').oninput = function () { S.pesanan = this.value.trim(); refreshManual(); };
+  $('m-cat').oninput = function () { S.catatan = this.value; refreshManual(); };
+  $('m-add-item').onclick = function () { S.items.push(newItem()); renderItems('m-items', refreshManual); refreshManual(); };
   $('btn-manual-next').onclick = function () {
     var miss = [];
     if (!S.layanan) miss.push('jasa kirim');
     if (!S.pesanan) miss.push('nomor pesanan');
     if (!S.kodeToko) miss.push('kode toko');
-    if (!String(S.mobil).trim()) miss.push('tipe mobil');
-    if (!String(S.warna).trim()) miss.push('varian warna');
+    miss = miss.concat(itemsMissing());
     if (miss.length) { note($('m-err'), 'err', 'Lengkapi dulu: ' + miss.join(', ') + '.'); return; }
     note($('m-err'));
     var rows = [['Jasa kirim', S.layanan], ['No. pesanan', S.pesanan]];
     if (S.jenis === 'instant') rows.push(['Maksimal', (S.maks || '-') + ' ' + S.satuan]);
-    rows.push(['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko], ['Tipe mobil', String(S.mobil).toUpperCase()], ['Warna', String(S.warna).toUpperCase()], ['Catatan', S.catatan || '—']);
-    openConfirm(rows);
+    rows.push(['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]);
+    openConfirm(rows.concat(itemsSummary()).concat([['Catatan', S.catatan || '—']]));
   };
 
   /* ---------- konfirmasi & kirim ---------- */
@@ -634,34 +733,38 @@ if (typeof module !== 'undefined') module.exports = Core;
   $('c-ok').onchange = function () { $('btn-send').disabled = !this.checked; };
   $('btn-confirm-back').onclick = function () { show(S.mode === 'manual' ? 's-manual' : 's-review'); };
 
-  function shareNow(caption, file) {
+  function shareNow(caption, files) {
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(caption).catch(function () {});
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], text: caption });
-    if (!file && navigator.share) return navigator.share({ text: caption });
-    // Cadangan: buka WhatsApp dengan teks saja
+    if (files && files.length && navigator.canShare && navigator.canShare({ files: files })) return navigator.share({ files: files, text: caption });
+    if ((!files || !files.length) && navigator.share) return navigator.share({ text: caption });
     window.location.href = 'https://wa.me/?text=' + encodeURIComponent(caption);
-    if (file) toast('Browser ini tidak bisa membagikan foto. Lampirkan foto resi manual di WhatsApp.');
+    if (files && files.length) toast('Browser ini tidak bisa membagikan foto. Lampirkan foto resi manual di WhatsApp.');
     return Promise.resolve();
   }
   $('btn-send').onclick = function () {
     var caption = S.mode === 'manual' ? Core.captionManual(S) : Core.captionResi(S);
-    var file = S.mode === 'resi' ? new File([S.blob], 'resi-' + (S.resi || 'foto') + '.jpg', { type: 'image/jpeg' }) : null;
-    lastShare = { caption: caption, file: file };
-    shareNow(caption, file).then(afterSent).catch(function (e) {
+    var files = S.mode === 'resi' ? S.photos.map(function (p, i) {
+      return new File([p.blob], 'resi-' + (S.resi || 'foto') + (S.photos.length > 1 ? '-' + (i + 1) : '') + '.jpg', { type: 'image/jpeg' });
+    }) : null;
+    lastShare = { caption: caption, files: files };
+    shareNow(caption, files).then(afterSent).catch(function (e) {
       if (e && e.name === 'AbortError') toast('Dibatalkan. Belum terkirim.');
       else toast('Gagal membuka WhatsApp: ' + (e && e.message));
     });
   };
   function afterSent() {
     var isM = S.mode === 'manual';
-    var row = { mode: isM ? S.layanan : 'resi foto', ekspedisi: isM ? S.layanan : S.ekspedisi, resi: isM ? S.pesanan : S.resi, kodeToko: S.kodeToko, mobil: String(S.mobil).toUpperCase(), warna: String(S.warna).toUpperCase(), qty: isM ? '' : S.qty, catatan: S.catatan || '', operator: cfg.operator || '' };
+    var mobil = S.items.map(function (it) { return String(it.mobil).toUpperCase(); }).join(' | ');
+    var warna = S.items.map(function (it) { return String(it.warna).toUpperCase(); }).join(' | ');
+    var qty = S.items.reduce(function (a, it) { return a + it.qty; }, 0);
+    var row = { mode: isM ? S.layanan : 'resi foto', ekspedisi: isM ? S.layanan : S.ekspedisi, resi: isM ? S.pesanan : S.resi, kodeToko: S.kodeToko, mobil: mobil, warna: warna, qty: qty, catatan: S.catatan || '', operator: cfg.operator || '' };
     api({ action: 'log', row: row }).catch(function () {});
     var h = LS.get('resiwa.hist', []);
-    h.unshift({ t: row.ekspedisi + ' · ' + row.resi, s: row.mobil + ' · ' + row.warna + ' · ' + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+    h.unshift({ t: row.ekspedisi + ' · ' + row.resi, s: (S.items.length > 1 ? S.items.length + ' produk · ' : mobil + ' · ' + warna + ' · ') + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
     LS.set('resiwa.hist', h.slice(0, 50));
     show('s-done');
   }
-  $('btn-reshare').onclick = function () { if (lastShare) shareNow(lastShare.caption, lastShare.file).catch(function () {}); };
+  $('btn-reshare').onclick = function () { if (lastShare) shareNow(lastShare.caption, lastShare.files).catch(function () {}); };
   $('btn-next').onclick = goHome;
 
   /* ---------- mulai ---------- */
@@ -672,6 +775,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     else loadDb().catch(function () {});
   }
 })();
+
 </script>
 </body>
 </html>
