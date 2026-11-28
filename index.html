@@ -51,6 +51,9 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
 .drop p{margin:0;font-size:13px;color:var(--mut)}
 .drop .btn{width:100%}
 .hist{display:flex;flex-direction:column;gap:8px}
+.hist-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:8px 2px 0;font-size:14px}
+.hist-h b{font-size:15px}
+.hist-h span{color:var(--g);font-weight:700}
 .hist .it{background:#fff;border-radius:14px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .hist .t{font-size:14px;font-weight:600}
 .hist .s{font-size:12px;color:var(--mut)}
@@ -512,7 +515,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   $('btn-settings').onclick = function () { openSetup(true); };
 
   /* ---------- perbarui aplikasi ---------- */
-  var APP_VERSION = '84829c3202';
+  var APP_VERSION = '922754160e';
   function updateApp() {
     toast('Memperbarui aplikasi & database…');
     var done = function () { location.replace(location.pathname + '?v=' + Date.now()); };
@@ -531,13 +534,33 @@ if (typeof module !== 'undefined') module.exports = Core;
   checkUpdate();
   document.addEventListener('visibilitychange', function () { if (!document.hidden) checkUpdate(); });
 
+  /* ---------- riwayat: hanya hari ini & kemarin ---------- */
+  function tgl(offset) {
+    var d = new Date(); d.setDate(d.getDate() + offset);
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function histBersih() {
+    var keep = [tgl(0), tgl(-1)];
+    var h = LS.get('resiwa.hist', []).filter(function (x) { return x && keep.indexOf(x.d) !== -1; });
+    LS.set('resiwa.hist', h);
+    return h;
+  }
+
   /* ---------- beranda ---------- */
   function goHome() {
     $('hello').textContent = 'Halo' + (cfg && cfg.operator ? ', ' + cfg.operator : '');
-    var h = LS.get('resiwa.hist', []);
-    $('hist').innerHTML = h.length ? h.slice(0, 15).map(function (x) {
-      return '<div class="it"><div><div class="t">' + esc(x.t) + '</div><div class="s">' + esc(x.s) + '</div></div><span class="pill">' + esc(x.w) + '</span></div>';
-    }).join('') : '<div class="sub">Belum ada pengiriman dari HP ini.</div>';
+    var h = histBersih();
+    var hari = [{ d: tgl(0), label: 'Hari ini' }, { d: tgl(-1), label: 'Kemarin' }];
+    var html = hari.map(function (g) {
+      var list = h.filter(function (x) { return x.d === g.d; });
+      if (!list.length && g.label === 'Kemarin') return '';
+      var pcs = list.reduce(function (a, x) { return a + (Number(x.pcs) || 0); }, 0);
+      return '<div class="hist-h"><b>' + g.label + '</b><span>' + list.length + ' pesanan · ' + pcs + ' pcs</span></div>' +
+        (list.length ? list.map(function (x) {
+          return '<div class="it"><div><div class="t">' + esc(x.t) + '</div><div class="s">' + esc(x.s) + '</div></div><span class="pill">' + esc(x.w) + '</span></div>';
+        }).join('') : '<div class="sub">Belum ada pengiriman hari ini.</div>');
+    }).join('');
+    $('hist').innerHTML = html;
     show('s-home');
   }
   $('btn-reload-db').onclick = function () {
@@ -1013,9 +1036,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     var items = S.items.map(function (it) { return { jenis: it.jenis || 'mobil', mobil: String(it.mobil).toUpperCase(), warna: String(it.warna).toUpperCase(), qty: it.qty }; });
     var row = { mode: isM ? S.layanan : 'resi foto', ekspedisi: isM ? S.layanan : S.ekspedisi, resi: isM ? '' : S.resi, pesanan: S.pesanan || '', kodeToko: S.kodeToko, mobil: mobil, warna: warna, qty: qty, items: items, catatan: S.catatan || '', operator: cfg.operator || '' };
     api({ action: 'log', row: row }).catch(function () {});
-    var h = LS.get('resiwa.hist', []);
-    h.unshift({ t: row.ekspedisi + ' · ' + (row.resi || row.pesanan), s: (S.items.length > 1 ? S.items.length + ' produk · ' : mobil + ' · ' + warna + ' · ') + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
-    LS.set('resiwa.hist', h.slice(0, 50));
+    var h = histBersih();
+    h.unshift({ d: tgl(0), pcs: qty, t: row.ekspedisi + ' · ' + (row.resi || row.pesanan), s: (S.items.length > 1 ? S.items.length + ' produk · ' : mobil + ' · ' + warna + ' · ') + row.kodeToko, w: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) });
+    LS.set('resiwa.hist', h);
     show('s-done');
   }
   $('btn-reshare').onclick = function () { if (lastShare) shareNow(lastShare.caption, lastShare.files).catch(function () {}); };
