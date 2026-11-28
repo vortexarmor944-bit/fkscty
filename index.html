@@ -229,6 +229,21 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
   </main>
 </section>
 
+<div id="edit" hidden role="dialog" aria-modal="true" aria-labelledby="e-title" style="position:fixed;inset:0;z-index:40;background:rgba(11,15,14,.45);display:flex;align-items:flex-end">
+  <div style="background:#fff;width:100%;max-width:560px;margin:0 auto;border-radius:18px 18px 0 0;padding:18px 20px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow:auto">
+    <h2 id="e-title" style="margin:0;font-size:18px">Ubah</h2>
+    <div id="e-prod" style="display:flex;flex-direction:column;gap:14px">
+      <div class="field"><label for="e-mobil">Tipe Mobil <span class="req">*</span></label><input id="e-mobil" class="up" list="dl-mobil" autocomplete="off"></div>
+      <div id="e-new" class="note info" hidden></div>
+      <div class="field"><label for="e-warna">Varian Warna <span class="req">*</span></label><input id="e-warna" class="up" list="dl-warna" autocomplete="off" placeholder="Ketik, mis. abu → pilih saran"></div>
+    </div>
+    <div class="field" id="e-cat-wrap"><label for="e-cat">Catatan (opsional)</label><textarea id="e-cat" rows="3" placeholder="Misal: kirim sebelum jam 3"></textarea></div>
+    <div id="e-err" class="note err" hidden></div>
+    <button type="button" class="btn btn-p" id="e-save">Simpan perubahan</button>
+    <button type="button" class="btn btn-t" id="e-cancel">Batal</button>
+  </div>
+</div>
+
 <div id="zoom" hidden role="dialog" aria-label="Foto resi" style="position:fixed;inset:0;z-index:50;background:#0b0f0e;overflow:auto;-webkit-overflow-scrolling:touch">
   <button type="button" id="zoom-close" aria-label="Tutup" style="position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:51;width:44px;height:44px;border-radius:22px;border:0;background:rgba(255,255,255,.92);font-size:22px;line-height:1;cursor:pointer">✕</button>
   <img id="zoom-img" alt="Foto resi diperbesar" style="display:block;width:200%;max-width:none;height:auto;margin:0">
@@ -477,7 +492,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   $('btn-settings').onclick = function () { openSetup(true); };
 
   /* ---------- perbarui aplikasi ---------- */
-  var APP_VERSION = '66ab99e374';
+  var APP_VERSION = 'c3d4884cdf';
   function updateApp() {
     toast('Memperbarui aplikasi & database…');
     var done = function () { location.replace(location.pathname + '?v=' + Date.now()); };
@@ -798,8 +813,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     var head = S.spx
       ? [['Layanan', S.spxLayanan], ['No. pesanan', S.pesanan], ['Jam pick up', S.pickup], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]]
       : [['Nomor resi', S.resi], ['Ekspedisi', S.ekspedisi], ['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]].concat(S.wajibPesanan ? [['No. pesanan', S.pesanan]] : []);
-    openConfirm(head
-      .concat(itemsSummary()).concat([['Foto', S.photos.length + ' foto'], ['Catatan', S.catatan || '—']]));
+    openConfirm(head, [['Foto', S.photos.length + ' foto']]);
   };
 
   /* ---------- input manual ---------- */
@@ -839,12 +853,13 @@ if (typeof module !== 'undefined') module.exports = Core;
     var rows = [['Jasa kirim', S.layanan], ['No. pesanan', S.pesanan]];
     if (S.jenis === 'instant') rows.push(['Maksimal', (S.maks || '-') + ' ' + S.satuan]);
     rows.push(['Toko', (shopBy(S.kodeToko) || {}).nama + ' · ' + S.kodeToko]);
-    openConfirm(rows.concat(itemsSummary()).concat([['Catatan', S.catatan || '—']]));
+    openConfirm(rows, []);
   };
 
   /* ---------- konfirmasi & kirim ---------- */
-  function openConfirm(rows) {
-    $('c-sum').innerHTML = rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join('');
+  function openConfirm(head, tail) {
+    S._cHead = head; S._cTail = tail || [];
+    renderConfirm();
     var withPhoto = S.mode === 'resi' && S.photos && S.photos.length;
     $('c-photos').hidden = !withPhoto;
     $('c-imgs').innerHTML = withPhoto ? S.photos.map(function (p, i) {
@@ -857,6 +872,70 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('c-ok').checked = false; $('btn-send').disabled = true;
     show('s-confirm');
   }
+  /* Ringkasan konfirmasi: Produk & Catatan bisa diubah lewat ikon pensil. */
+  var PENSIL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>';
+  function renderConfirm() {
+    var row = function (label, val, edit) {
+      return '<div style="align-items:center"><span>' + esc(label) + '</span><b style="flex:1">' + esc(val) + '</b>' +
+        (edit ? '<button type="button" class="c-edit" data-edit="' + edit + '" aria-label="Ubah ' + esc(label) + '" style="flex:none;width:44px;height:44px;margin:-6px -8px -6px 0;border:0;background:none;color:var(--g);cursor:pointer;display:flex;align-items:center;justify-content:center">' + PENSIL + '</button>' : '') + '</div>';
+    };
+    var html = S._cHead.map(function (r) { return row(r[0], r[1]); }).join('');
+    html += S.items.map(function (it, i) {
+      return row('Produk ' + (i + 1), String(it.mobil).toUpperCase() + ' · ' + String(it.warna).toUpperCase() + (it.qty > 1 ? ' · ' + it.qty + ' pcs' : ''), 'item' + i);
+    }).join('');
+    html += S._cTail.map(function (r) { return row(r[0], r[1]); }).join('');
+    html += row('Catatan', S.catatan || '—', 'cat');
+    $('c-sum').innerHTML = html;
+    $('c-sum').querySelectorAll('.c-edit').forEach(function (b) { b.onclick = function () { openEdit(b.getAttribute('data-edit')); }; });
+  }
+  var editKey = null;
+  function openEdit(key) {
+    editKey = key;
+    var isCat = key === 'cat';
+    $('e-title').textContent = isCat ? 'Ubah Catatan' : 'Ubah Produk ' + (+key.slice(4) + 1);
+    $('e-prod').hidden = isCat; $('e-cat-wrap').hidden = !isCat;
+    if (isCat) $('e-cat').value = S.catatan || '';
+    else {
+      var it = S.items[+key.slice(4)];
+      $('e-mobil').value = String(it.mobil || '').toUpperCase();
+      $('e-warna').value = String(it.warna || '').toUpperCase();
+      editCarNote();
+    }
+    note($('e-err'));
+    $('edit').hidden = false;
+    setTimeout(function () { (isCat ? $('e-cat') : $('e-mobil')).focus(); }, 50);
+  }
+  function editCarNote() {
+    var t = $('e-mobil').value.trim();
+    var box = $('e-new');
+    if (!t || knownCar(t)) { box.hidden = true; return; }
+    note(box, 'info', '<div style="display:flex;gap:10px;align-items:center"><span style="flex:1"><b>' + esc(t.toUpperCase()) + '</b> belum ada di database. Simpan supaya berikutnya terbaca otomatis?</span><button type="button" class="btn" style="background:#1D3A6E;color:#fff;min-height:44px">Simpan</button></div>');
+    box.querySelector('button').onclick = function () {
+      var tt = $('e-mobil').value.trim().toUpperCase();
+      api({ action: 'saveMobil', tipe: tt, kataKunci: tt.toLowerCase() })
+        .then(function () { db.mobil.push({ tipe: tt, kata_kunci: tt.toLowerCase() }); LS.set('resiwa.db', db); fillLists(); toast('Tersimpan ke database.'); editCarNote(); })
+        .catch(function (e) { toast('Gagal menyimpan: ' + e.message); });
+    };
+  }
+  $('e-mobil').oninput = editCarNote;
+  function closeEdit() { $('edit').hidden = true; editKey = null; }
+  $('e-cancel').onclick = closeEdit;
+  $('e-save').onclick = function () {
+    if (editKey === 'cat') {
+      S.catatan = $('e-cat').value.trim();
+      var c = $(S.mode === 'manual' ? 'm-cat' : 'r-cat'); if (c) c.value = S.catatan;
+    } else {
+      var mobil = $('e-mobil').value.trim(), warna = $('e-warna').value.trim();
+      if (!mobil || !warna) { note($('e-err'), 'err', 'Tipe mobil dan varian warna wajib diisi.'); return; }
+      var it = S.items[+editKey.slice(4)];
+      it.mobil = mobil.toUpperCase(); it.warna = warna.toLowerCase(); it.warnaManual = true;
+    }
+    closeEdit();
+    renderConfirm();
+    $('c-ok').checked = false; $('btn-send').disabled = true;
+    toast('Sudah diubah. Periksa lagi lalu centang ulang.');
+  };
+
   // Foto layar penuh: tampil 2x lebar layar, bisa digeser; cubit untuk zoom lebih jauh.
   function openZoom(url) {
     $('zoom-img').src = url; $('zoom').hidden = false; $('zoom').scrollTop = 0;
