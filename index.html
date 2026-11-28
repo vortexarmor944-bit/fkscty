@@ -217,6 +217,10 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
 <section id="s-confirm" hidden>
   <header class="top"><div><div class="sub">Langkah terakhir</div><h1>Konfirmasi Pengiriman</h1></div></header>
   <main>
+    <div id="c-photos" hidden style="display:flex;flex-direction:column;gap:10px">
+      <div class="sub">Cocokkan foto resi dengan data di bawahnya. Ketuk foto untuk memperbesar.</div>
+      <div id="c-imgs" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
     <div class="sum" id="c-sum" style="background:#fff"></div>
     <label class="check"><input type="checkbox" id="c-ok"><span>Saya sudah memeriksa semua data. Data sudah benar.</span></label>
     <button class="btn btn-p" id="btn-send" disabled>KONFIRMASI &amp; KIRIM</button>
@@ -224,6 +228,11 @@ button,.btn{font:inherit;cursor:pointer;border:0;border-radius:14px;min-height:4
     <button class="btn btn-t" id="btn-confirm-back">Batal, edit lagi</button>
   </main>
 </section>
+
+<div id="zoom" hidden role="dialog" aria-label="Foto resi" style="position:fixed;inset:0;z-index:50;background:#0b0f0e;overflow:auto;-webkit-overflow-scrolling:touch">
+  <button type="button" id="zoom-close" aria-label="Tutup" style="position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:51;width:44px;height:44px;border-radius:22px;border:0;background:rgba(255,255,255,.92);font-size:22px;line-height:1;cursor:pointer">✕</button>
+  <img id="zoom-img" alt="Foto resi diperbesar" style="display:block;width:200%;max-width:none;height:auto;margin:0">
+</div>
 
 <!-- ========== SELESAI ========== -->
 <section id="s-done" hidden>
@@ -468,7 +477,7 @@ if (typeof module !== 'undefined') module.exports = Core;
   $('btn-settings').onclick = function () { openSetup(true); };
 
   /* ---------- perbarui aplikasi ---------- */
-  var APP_VERSION = '188f59486e';
+  var APP_VERSION = '66ab99e374';
   function updateApp() {
     toast('Memperbarui aplikasi & database…');
     var done = function () { location.replace(location.pathname + '?v=' + Date.now()); };
@@ -836,9 +845,29 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ---------- konfirmasi & kirim ---------- */
   function openConfirm(rows) {
     $('c-sum').innerHTML = rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join('');
+    var withPhoto = S.mode === 'resi' && S.photos && S.photos.length;
+    $('c-photos').hidden = !withPhoto;
+    $('c-imgs').innerHTML = withPhoto ? S.photos.map(function (p, i) {
+      return '<button type="button" class="c-img" data-i="' + i + '" style="padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;cursor:zoom-in;min-height:44px">' +
+        '<img src="' + p.url + '" alt="Foto resi ' + (i + 1) + '" style="display:block;width:100%;height:auto"></button>';
+    }).join('') : '';
+    $('c-imgs').querySelectorAll('.c-img').forEach(function (b) {
+      b.onclick = function () { openZoom(S.photos[+b.getAttribute('data-i')].url); };
+    });
     $('c-ok').checked = false; $('btn-send').disabled = true;
     show('s-confirm');
   }
+  // Foto layar penuh: tampil 2x lebar layar, bisa digeser; cubit untuk zoom lebih jauh.
+  function openZoom(url) {
+    $('zoom-img').src = url; $('zoom').hidden = false; $('zoom').scrollTop = 0;
+    $('zoom').scrollLeft = 0;
+  }
+  function closeZoom() { $('zoom').hidden = true; $('zoom-img').removeAttribute('src'); }
+  $('zoom-close').onclick = closeZoom;
+  $('zoom-img').onclick = function () {
+    var big = this.style.width !== '100%';
+    this.style.width = big ? '100%' : '200%';
+  };
   $('c-ok').onchange = function () { $('btn-send').disabled = !this.checked; };
   $('btn-confirm-back').onclick = function () { show(S.mode === 'manual' ? 's-manual' : 's-review'); };
 
